@@ -24,7 +24,12 @@ void StatusBar::rebuildText()
     const juce::String recText  = transportState.isRecordArmed() ? "Rec: Armed" : "Rec: Off";
     const juce::String loopText = transportState.isLoopEnabled() ? "Loop: On" : "Loop: Off";
     const juce::String metText  = transportState.isMetronomeEnabled() ? "Met: On" : "Met: Off";
+    const juce::String bpmText  = "BPM: " + juce::String ((int) std::round (transportState.getBpm()));
     const juce::String beatText = "Beat: " + juce::String (transportState.getPlayheadBeats(), 2);
+    const juce::String rangeText = "LoopRange: "
+                                 + juce::String (transportState.getLoopStartBeat(), 2)
+                                 + "-"
+                                 + juce::String (transportState.getLoopEndBeat(), 2);
 
     statusText = juce::String ("Audio: Ready   |   Engine: ")
                + modeText
@@ -35,7 +40,11 @@ void StatusBar::rebuildText()
                + "   |   "
                + metText
                + "   |   "
-               + beatText;
+               + bpmText
+               + "   |   "
+               + beatText
+               + "   |   "
+               + rangeText;
 }
 
 void StatusBar::paint (juce::Graphics& g)

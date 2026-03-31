@@ -62,6 +62,16 @@ public:
         return playheadBeats;
     }
 
+    double getLoopStartBeat() const noexcept
+    {
+        return loopStartBeat;
+    }
+
+    double getLoopEndBeat() const noexcept
+    {
+        return loopEndBeat;
+    }
+
     void play()
     {
         if (mode != Mode::playing)
@@ -155,13 +165,33 @@ public:
         setPlayheadBeats (0.0);
     }
 
+    void setLoopRange (double startBeat, double endBeat)
+    {
+        startBeat = juce::jmax (0.0, startBeat);
+        endBeat = juce::jmax (startBeat + 1.0, endBeat);
+
+        const bool changed = ! juce::approximatelyEqual (loopStartBeat, startBeat)
+                          || ! juce::approximatelyEqual (loopEndBeat, endBeat);
+
+        loopStartBeat = startBeat;
+        loopEndBeat = endBeat;
+
+        if (changed)
+            notifyListeners();
+    }
+
     void advance (double deltaSeconds)
     {
         if (! isPlaying() || deltaSeconds <= 0.0)
             return;
 
         const double beatsPerSecond = bpm / 60.0;
-        setPlayheadBeats (playheadBeats + (deltaSeconds * beatsPerSecond));
+        double nextBeat = playheadBeats + (deltaSeconds * beatsPerSecond);
+
+        if (loopEnabled && loopEndBeat > loopStartBeat && nextBeat >= loopEndBeat)
+            nextBeat = loopStartBeat;
+
+        setPlayheadBeats (nextBeat);
     }
 
 private:
@@ -177,6 +207,8 @@ private:
 
     double bpm { 120.0 };
     double playheadBeats { 0.0 };
+    double loopStartBeat { 4.0 };
+    double loopEndBeat { 8.0 };
 
     juce::ListenerList<Listener> listeners;
 };

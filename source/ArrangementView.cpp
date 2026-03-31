@@ -11,6 +11,23 @@ void ArrangementView::setPlayheadBeats (double newPlayheadBeats)
     }
 }
 
+void ArrangementView::setLoopState (bool shouldShowLoop, double newLoopStartBeat, double newLoopEndBeat)
+{
+    newLoopStartBeat = juce::jmax (0.0, newLoopStartBeat);
+    newLoopEndBeat = juce::jmax (newLoopStartBeat + 1.0, newLoopEndBeat);
+
+    const bool changed = (loopEnabled != shouldShowLoop)
+                      || ! juce::approximatelyEqual (loopStartBeat, newLoopStartBeat)
+                      || ! juce::approximatelyEqual (loopEndBeat, newLoopEndBeat);
+
+    loopEnabled = shouldShowLoop;
+    loopStartBeat = newLoopStartBeat;
+    loopEndBeat = newLoopEndBeat;
+
+    if (changed)
+        repaint();
+}
+
 void ArrangementView::paint (juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
@@ -39,11 +56,24 @@ void ArrangementView::paint (juce::Graphics& g)
     g.fillRect (timeline);
 
     constexpr int beatWidth = 80;
+    constexpr int timelineOffsetX = 80;
+
+    if (loopEnabled)
+    {
+        const int loopX = timelineOffsetX + (int) std::round (loopStartBeat * (double) beatWidth);
+        const int loopW = (int) std::round ((loopEndBeat - loopStartBeat) * (double) beatWidth);
+
+        g.setColour (juce::Colour::fromRGBA (90, 130, 220, 90));
+        g.fillRect (loopX, timeline.getY() + 4, loopW, timeline.getHeight() - 8);
+
+        g.setColour (juce::Colour::fromRGB (140, 180, 255));
+        g.drawRect (loopX, timeline.getY() + 4, loopW, timeline.getHeight() - 8, 2);
+    }
 
     g.setColour (juce::Colours::white.withAlpha (0.65f));
     for (int i = 0; i < 16; ++i)
     {
-        const int x = 80 + i * beatWidth;
+        const int x = timelineOffsetX + i * beatWidth;
         g.drawText (juce::String (i + 1), x - 8, 8, 30, 20, juce::Justification::centred);
     }
 

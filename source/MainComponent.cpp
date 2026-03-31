@@ -20,6 +20,9 @@ MainComponent::MainComponent()
     addAndMakeVisible (statusBar);
 
     arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
+    arrangementView.setLoopState (transportState.isLoopEnabled(),
+                                  transportState.getLoopStartBeat(),
+                                  transportState.getLoopEndBeat());
 
     setSize (1400, 860);
     startTimerHz (timerHz);
@@ -54,5 +57,9 @@ void MainComponent::timerCallback()
     constexpr double deltaSeconds = 1.0 / (double) timerHz;
 
     transportState.advance (deltaSeconds);
+
     arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
+    arrangementView.setLoopState (transportState.isLoopEnabled(),
+                                  transportState.getLoopStartBeat(),
+                                  transportState.getLoopEndBeat());
 }
