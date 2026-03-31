@@ -20,17 +20,22 @@ void StatusBar::transportStateChanged()
 
 void StatusBar::rebuildText()
 {
-    const auto modeText = transportState.isPlaying() ? "Playing" : "Stopped";
-    const auto recText = transportState.isRecordArmed() ? "Rec: Armed" : "Rec: Off";
-    const auto loopText = transportState.isLoopEnabled() ? "Loop: On" : "Loop: Off";
-    const auto metText = transportState.isMetronomeEnabled() ? "Met: On" : "Met: Off";
-    const auto beatText = "Beat: " + juce::String (transportState.getPlayheadBeats(), 2);
+    const juce::String modeText = transportState.isPlaying() ? "Playing" : "Stopped";
+    const juce::String recText  = transportState.isRecordArmed() ? "Rec: Armed" : "Rec: Off";
+    const juce::String loopText = transportState.isLoopEnabled() ? "Loop: On" : "Loop: Off";
+    const juce::String metText  = transportState.isMetronomeEnabled() ? "Met: On" : "Met: Off";
+    const juce::String beatText = "Beat: " + juce::String (transportState.getPlayheadBeats(), 2);
 
-    statusText = "Audio: Ready   |   Engine: " + modeText
-               + "   |   " + recText
-               + "   |   " + loopText
-               + "   |   " + metText
-               + "   |   " + beatText;
+    statusText = juce::String ("Audio: Ready   |   Engine: ")
+               + modeText
+               + "   |   "
+               + recText
+               + "   |   "
+               + loopText
+               + "   |   "
+               + metText
+               + "   |   "
+               + beatText;
 }
 
 void StatusBar::paint (juce::Graphics& g)
