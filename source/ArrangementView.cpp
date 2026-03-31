@@ -1,5 +1,16 @@
 #include "ArrangementView.h"
 
+void ArrangementView::setPlayheadBeats (double newPlayheadBeats)
+{
+    newPlayheadBeats = juce::jmax (0.0, newPlayheadBeats);
+
+    if (! juce::approximatelyEqual (playheadBeats, newPlayheadBeats))
+    {
+        playheadBeats = newPlayheadBeats;
+        repaint();
+    }
+}
+
 void ArrangementView::paint (juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
@@ -27,10 +38,12 @@ void ArrangementView::paint (juce::Graphics& g)
     g.setColour (juce::Colour::fromRGB (24, 26, 31));
     g.fillRect (timeline);
 
+    constexpr int beatWidth = 80;
+
     g.setColour (juce::Colours::white.withAlpha (0.65f));
     for (int i = 0; i < 16; ++i)
     {
-        const int x = 80 + i * 80;
+        const int x = 80 + i * beatWidth;
         g.drawText (juce::String (i + 1), x - 8, 8, 30, 20, juce::Justification::centred);
     }
 
@@ -55,12 +68,12 @@ void ArrangementView::paint (juce::Graphics& g)
 
     for (int i = 0; i < 5; ++i)
     {
-        int y = trackArea.getY() + i * 88;
+        const int y = trackArea.getY() + i * 88;
         g.setColour (juce::Colour::fromRGB (38, 42, 48));
         g.drawHorizontalLine (y, (float) trackArea.getX(), (float) trackArea.getRight());
     }
 
-    for (int x = trackArea.getX(); x < trackArea.getRight(); x += 80)
+    for (int x = trackArea.getX(); x < trackArea.getRight(); x += beatWidth)
     {
         g.setColour (juce::Colour::fromRGB (34, 37, 42));
         g.drawVerticalLine (x, (float) trackArea.getY(), (float) trackArea.getBottom());
@@ -76,6 +89,6 @@ void ArrangementView::paint (juce::Graphics& g)
     g.fillRoundedRectangle ((float) trackArea.getX() + 360.0f, (float) trackArea.getY() + 194.0f, 260.0f, 44.0f, 8.0f);
 
     g.setColour (juce::Colour::fromRGB (255, 255, 255).withAlpha (0.25f));
-    const int playheadX = trackArea.getX() + 140;
+    const int playheadX = trackArea.getX() + (int) std::round (playheadBeats * (double) beatWidth);
     g.drawLine ((float) playheadX, (float) trackArea.getY(), (float) playheadX, (float) trackArea.getBottom(), 2.0f);
 }

@@ -1,18 +1,28 @@
 #pragma once
 #include <JuceHeader.h>
+#include "TransportState.h"
 
-class TransportBar : public juce::Component
+class TransportBar : public juce::Component,
+                     private TransportState::Listener
 {
 public:
-    TransportBar();
+    explicit TransportBar (TransportState& state);
+    ~TransportBar() override;
 
     void paint (juce::Graphics& g) override;
     void resized() override;
 
 private:
+    void transportStateChanged() override;
+    void refreshFromState();
+
+    TransportState& transportState;
+
     juce::TextButton playButton { "Play" };
     juce::TextButton stopButton { "Stop" };
     juce::TextButton recordButton { "Rec" };
+    juce::TextButton bpmDownButton { "-" };
+    juce::TextButton bpmUpButton { "+" };
 
     juce::ToggleButton loopToggle { "Loop" };
     juce::ToggleButton metroToggle { "Met" };

@@ -6,9 +6,12 @@ namespace
     constexpr int statusHeight = 28;
     constexpr int leftPanelWidth = 240;
     constexpr int rightPanelWidth = 260;
+    constexpr int timerHz = 30;
 }
 
 MainComponent::MainComponent()
+    : transportBar (transportState),
+      statusBar (transportState)
 {
     addAndMakeVisible (transportBar);
     addAndMakeVisible (browserPanel);
@@ -16,7 +19,10 @@ MainComponent::MainComponent()
     addAndMakeVisible (arrangementView);
     addAndMakeVisible (statusBar);
 
+    arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
+
     setSize (1400, 860);
+    startTimerHz (timerHz);
 }
 
 void MainComponent::paint (juce::Graphics& g)
@@ -41,4 +47,12 @@ void MainComponent::resized()
     inspectorPanel.setBounds (right);
 
     arrangementView.setBounds (area);
+}
+
+void MainComponent::timerCallback()
+{
+    constexpr double deltaSeconds = 1.0 / (double) timerHz;
+
+    transportState.advance (deltaSeconds);
+    arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
 }
