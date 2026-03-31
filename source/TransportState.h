@@ -39,13 +39,17 @@ public:
     }
 
     void stop()
-    {
-        if (mode != Mode::stopped)
-        {
-            mode = Mode::stopped;
-            notifyListeners();
-        }
-    }
+{
+    const bool wasPlaying = (mode != Mode::stopped);
+    const bool hadPlayheadOffset = ! juce::approximatelyEqual (playheadBeats, 0.0);
+
+    mode = Mode::stopped;
+    playheadBeats = 0.0;
+
+    if (wasPlaying || hadPlayheadOffset)
+        notifyListeners();
+}
+}
 
     void togglePlay()
     {
