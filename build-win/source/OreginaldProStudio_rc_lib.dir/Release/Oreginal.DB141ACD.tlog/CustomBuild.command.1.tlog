@@ -1,0 +1,20 @@
+^C:\USERS\USER\OREGINALDLV\OREGINALD-PRO-STUDIO\BUILD-WIN\CMAKEFILES\FF23B4548D12E35C53ECA4C95C0A1C79\OREGINALDPROSTUDIO_RESOURCES.RC.RULE
+setlocal
+..\JUCE\tools\extras\Build\juceaide\juceaide_artefacts\Custom\juceaide.exe rcfile C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/source/OreginaldProStudio_artefacts/JuceLibraryCode/Info.txt C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/source/OreginaldProStudio_artefacts/JuceLibraryCode/OreginaldProStudio_resources.rc
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\USER\OREGINALDLV\OREGINALD-PRO-STUDIO\SOURCE\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/User/Oreginaldlv/oreginald-pro-studio -BC:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win --check-stamp-file C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/source/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

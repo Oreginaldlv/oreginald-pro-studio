@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\build-win\JUCE\tools\CMakeFiles\a0dd36cece542013f2f276f06297047b\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{BB402851-E6B8-3E07-ABB1-7A6BF8981987}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

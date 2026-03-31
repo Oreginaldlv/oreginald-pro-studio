@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\build-win\CMakeFiles\ff23b4548d12e35c53eca4c95c0a1c79\OreginaldProStudio_resources.rc.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\source\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\build-win\source\OreginaldProStudio_artefacts\JuceLibraryCode\OreginaldProStudio_resources.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{62C91408-DB5A-36D8-AF01-3D5AD53D6BEB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{A1C693A5-AC58-3CAE-85EE-D91D705944C8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/JUCE/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/JUCE/modules/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/JUCE/extras/Build/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/JUCE/extras/Build/juceaide/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/source/cmake_install.cmake",
+		"C:/Users/User/Oreginaldlv/oreginald-pro-studio/build-win/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
