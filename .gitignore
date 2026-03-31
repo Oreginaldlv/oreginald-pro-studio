@@ -1,0 +1,31 @@
+# Build
+build/
+build-*/
+out/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Testing/
+
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+x64/
+Debug/
+Release/
+
+# JUCE generated
+JuceLibraryCode/
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
