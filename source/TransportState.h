@@ -17,17 +17,50 @@ public:
         virtual void transportStateChanged() = 0;
     };
 
-    void addListener (Listener* listener)      { listeners.add (listener); }
-    void removeListener (Listener* listener)   { listeners.remove (listener); }
+    void addListener (Listener* listener)
+    {
+        listeners.add (listener);
+    }
 
-    Mode getMode() const noexcept              { return mode; }
-    bool isPlaying() const noexcept            { return mode == Mode::playing; }
-    bool isRecordArmed() const noexcept        { return recordArmed; }
-    bool isLoopEnabled() const noexcept        { return loopEnabled; }
-    bool isMetronomeEnabled() const noexcept   { return metronomeEnabled; }
+    void removeListener (Listener* listener)
+    {
+        listeners.remove (listener);
+    }
 
-    double getBpm() const noexcept             { return bpm; }
-    double getPlayheadBeats() const noexcept   { return playheadBeats; }
+    Mode getMode() const noexcept
+    {
+        return mode;
+    }
+
+    bool isPlaying() const noexcept
+    {
+        return mode == Mode::playing;
+    }
+
+    bool isRecordArmed() const noexcept
+    {
+        return recordArmed;
+    }
+
+    bool isLoopEnabled() const noexcept
+    {
+        return loopEnabled;
+    }
+
+    bool isMetronomeEnabled() const noexcept
+    {
+        return metronomeEnabled;
+    }
+
+    double getBpm() const noexcept
+    {
+        return bpm;
+    }
+
+    double getPlayheadBeats() const noexcept
+    {
+        return playheadBeats;
+    }
 
     void play()
     {
@@ -39,21 +72,23 @@ public:
     }
 
     void stop()
-{
-    const bool wasPlaying = (mode != Mode::stopped);
-    const bool hadPlayheadOffset = ! juce::approximatelyEqual (playheadBeats, 0.0);
+    {
+        const bool wasPlaying = (mode != Mode::stopped);
+        const bool hadPlayheadOffset = ! juce::approximatelyEqual (playheadBeats, 0.0);
 
-    mode = Mode::stopped;
-    playheadBeats = 0.0;
+        mode = Mode::stopped;
+        playheadBeats = 0.0;
 
-    if (wasPlaying || hadPlayheadOffset)
-        notifyListeners();
-}
-}
+        if (wasPlaying || hadPlayheadOffset)
+            notifyListeners();
+    }
 
     void togglePlay()
     {
-        isPlaying() ? stop() : play();
+        if (isPlaying())
+            stop();
+        else
+            play();
     }
 
     void setRecordArmed (bool shouldBeArmed)
@@ -125,7 +160,7 @@ public:
         if (! isPlaying() || deltaSeconds <= 0.0)
             return;
 
-        const auto beatsPerSecond = bpm / 60.0;
+        const double beatsPerSecond = bpm / 60.0;
         setPlayheadBeats (playheadBeats + (deltaSeconds * beatsPerSecond));
     }
 
