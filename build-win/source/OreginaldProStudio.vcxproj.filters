@@ -22,6 +22,12 @@
     <ClCompile Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\source\StatusBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\source\TrackEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\User\Oreginaldlv\oreginald-pro-studio\source\ClipComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\JUCE\modules\juce_audio_utils\juce_audio_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

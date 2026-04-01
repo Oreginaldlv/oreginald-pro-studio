@@ -1,0 +1,50 @@
+#include "../source/TrackEngine.h"
+#include <iostream>
+
+static bool expect (bool condition, const char* message)
+{
+    if (! condition)
+    {
+        std::cerr << "FAIL: " << message << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+int main()
+{
+    TrackEngine engine;
+
+    if (! expect (engine.getNumTracks() == 5, "Track count should be 5")) return 1;
+    if (! expect (engine.getSelectedTrackIndex() == 0, "Default selected track should be 0")) return 1;
+
+    engine.setSelectedTrackIndex (2);
+    if (! expect (engine.getSelectedTrackIndex() == 2, "Selected track should update")) return 1;
+
+    engine.setTrackArmed (2, true);
+    if (! expect (engine.getTrack (2).armed, "Track 2 should be armed")) return 1;
+
+    engine.setTrackMuted (1, true);
+    if (! expect (! engine.isTrackAudible (1), "Muted track should not be audible")) return 1;
+
+    engine.setTrackMuted (1, false);
+    if (! expect (engine.isTrackAudible (1), "Unmuted track should be audible")) return 1;
+
+    engine.setTrackSolo (3, true);
+    if (! expect (! engine.isTrackAudible (0), "Non-solo track should not be audible when another track is soloed")) return 1;
+    if (! expect (engine.isTrackAudible (3), "Soloed track should be audible")) return 1;
+
+    engine.setTrackVolume (0, 1.2f);
+    if (! expect (engine.getTrack (0).volume == 1.2f, "Track volume should update")) return 1;
+
+    engine.setTrackPan (0, -0.5f);
+    if (! expect (engine.getTrack (0).pan == -0.5f, "Track pan should update")) return 1;
+
+    const float leftGain = engine.getLeftGain (0);
+    const float rightGain = engine.getRightGain (0);
+    if (! expect (leftGain > rightGain, "Left gain should be higher when panned left")) return 1;
+
+    std::cout << "PASS: TrackEngine tests passed" << std::endl;
+    return 0;
+}

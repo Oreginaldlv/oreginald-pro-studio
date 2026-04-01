@@ -1,65 +1,62 @@
 #include "MainComponent.h"
 
-namespace
-{
-    constexpr int transportHeight = 64;
-    constexpr int statusHeight = 28;
-    constexpr int leftPanelWidth = 240;
-    constexpr int rightPanelWidth = 260;
-    constexpr int timerHz = 30;
-}
-
 MainComponent::MainComponent()
-    : transportBar (transportState),
-      statusBar (transportState)
+    : transportBar(transportState),
+      inspectorPanel(trackEngine),
+      arrangementView(trackEngine)
 {
-    addAndMakeVisible (transportBar);
-    addAndMakeVisible (browserPanel);
-    addAndMakeVisible (inspectorPanel);
-    addAndMakeVisible (arrangementView);
-    addAndMakeVisible (statusBar);
+    addAndMakeVisible(transportBar);
+    addAndMakeVisible(browserPanel);
+    addAndMakeVisible(inspectorPanel);
+    addAndMakeVisible(arrangementView);
+    addAndMakeVisible(statusBar);
 
-    arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
-    arrangementView.setLoopState (transportState.isLoopEnabled(),
-                                  transportState.getLoopStartBeat(),
-                                  transportState.getLoopEndBeat());
-
-    setSize (1400, 860);
-    startTimerHz (timerHz);
+    startTimerHz(30);
+    setSize(1400, 900);
 }
 
-void MainComponent::paint (juce::Graphics& g)
+void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll (juce::Colour::fromRGB (16, 17, 22));
+    g.fillAll(juce::Colour(0xff111111));
 }
 
 void MainComponent::resized()
 {
     auto area = getLocalBounds();
 
-    auto top = area.removeFromTop (transportHeight);
-    transportBar.setBounds (top);
+    constexpr int transportHeight = 60;
+    constexpr int statusHeight = 22;
+    constexpr int browserWidth = 220;
+    constexpr int inspectorWidth = 300;
 
-    auto bottom = area.removeFromBottom (statusHeight);
-    statusBar.setBounds (bottom);
+    transportBar.setBounds(area.removeFromTop(transportHeight));
+    statusBar.setBounds(area.removeFromBottom(statusHeight));
 
-    auto left = area.removeFromLeft (leftPanelWidth);
-    browserPanel.setBounds (left);
+    browserPanel.setBounds(area.removeFromLeft(browserWidth));
+    inspectorPanel.setBounds(area.removeFromRight(inspectorWidth));
 
-    auto right = area.removeFromRight (rightPanelWidth);
-    inspectorPanel.setBounds (right);
-
-    arrangementView.setBounds (area);
+    arrangementView.setBounds(area);
 }
 
 void MainComponent::timerCallback()
 {
-    constexpr double deltaSeconds = 1.0 / (double) timerHz;
+    arrangementView.repaint();
+    inspectorPanel.repaint();
 
-    transportState.advance (deltaSeconds);
+    const int selectedIndex = trackEngine.getSelectedTrackIndex();
+    const auto& track = trackEngine.getTrack(selectedIndex);
 
-    arrangementView.setPlayheadBeats (transportState.getPlayheadBeats());
-    arrangementView.setLoopState (transportState.isLoopEnabled(),
-                                  transportState.getLoopStartBeat(),
-                                  transportState.getLoopEndBeat());
+    juce::String status;
+
+    status << "Track: " << track.name
+           << " | Vol: " << juce::String(track.volume, 2)
+           << " | Pan: " << juce::String(track.pan, 2)
+           << " | Armed: " << (track.armed ? "Yes" : "No")
+           << " | Muted: " << (track.muted ? "Yes" : "No")
+           << " | Solo: " << (track.solo ? "Yes" : "No")
+           << " | Tempo: " << juce::String(transportState.getTempo(), 1)
+           << " | Playing: " << (transportState.isPlaying() ? "Yes" : "No")
+           << " | Recording: " << (transportState.isRecording() ? "Yes" : "No");
+
+    statusBar.setStatusText(status);
 }

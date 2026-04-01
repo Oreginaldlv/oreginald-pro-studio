@@ -1,4 +1,1 @@
-add_test(
-    NAME OPS_SmokeTest
-    COMMAND ${CMAKE_COMMAND} -E echo "No tests yet"
-)
+# Tests temporarily disabled until JUCE test target is configured

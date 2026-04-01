@@ -1,6 +1,9 @@
 #pragma once
 #include <JuceHeader.h>
+
 #include "TransportState.h"
+#include "TrackEngine.h"
+
 #include "TransportBar.h"
 #include "BrowserPanel.h"
 #include "InspectorPanel.h"
@@ -13,13 +16,17 @@ class MainComponent : public juce::Component,
 public:
     MainComponent();
 
-    void paint (juce::Graphics& g) override;
+    void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
     void timerCallback() override;
 
+    // core state
     TransportState transportState;
+    TrackEngine trackEngine;
+
+    // UI
     TransportBar transportBar;
     BrowserPanel browserPanel;
     InspectorPanel inspectorPanel;

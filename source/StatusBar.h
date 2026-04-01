@@ -1,23 +1,18 @@
 #pragma once
 #include <JuceHeader.h>
-#include "TransportState.h"
 
-class StatusBar : public juce::Component,
-                  private TransportState::Listener
+class StatusBar : public juce::Component
 {
 public:
-    explicit StatusBar (TransportState& state);
-    ~StatusBar() override;
+    StatusBar();
 
     void paint (juce::Graphics& g) override;
-    void resized() override {}
+    void resized() override;
+
+    void setStatusText (const juce::String& text);
 
 private:
-    void transportStateChanged() override;
-    void rebuildText();
-
-    TransportState& transportState;
-    juce::String statusText;
+    juce::Label statusLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StatusBar)
 };

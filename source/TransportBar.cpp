@@ -1,110 +1,73 @@
 #include "TransportBar.h"
 
-namespace
-{
-    juce::String formatBarsBeats (double beats)
-    {
-        const auto wholeBeats = juce::jmax (0, (int) std::floor (beats));
-        const int bars = (wholeBeats / 4) + 1;
-        const int beatInBar = (wholeBeats % 4) + 1;
-        return juce::String (bars) + "." + juce::String (beatInBar) + ".1";
-    }
-}
-
 TransportBar::TransportBar (TransportState& state)
     : transportState (state)
 {
-    transportState.addListener (this);
-
+    playButton.onClick = [this]
+    {
+        transportState.setPlaying (true);
+    };
     addAndMakeVisible (playButton);
+
+    stopButton.onClick = [this]
+    {
+        transportState.setPlaying (false);
+    };
     addAndMakeVisible (stopButton);
+
+    recordButton.onClick = [this]
+    {
+        transportState.setRecording (! transportState.isRecording());
+    };
     addAndMakeVisible (recordButton);
-    addAndMakeVisible (bpmDownButton);
-    addAndMakeVisible (bpmUpButton);
-    addAndMakeVisible (loopToggle);
-    addAndMakeVisible (metroToggle);
-    addAndMakeVisible (titleLabel);
-    addAndMakeVisible (bpmLabel);
-    addAndMakeVisible (timeLabel);
 
-    titleLabel.setText ("Oreginald Pro Studio", juce::dontSendNotification);
-    titleLabel.setJustificationType (juce::Justification::centredLeft);
-    titleLabel.setFont (juce::FontOptions (20.0f, juce::Font::bold));
+    tempoLabel.setText ("Tempo", juce::dontSendNotification);
+    tempoLabel.setJustificationType (juce::Justification::centredLeft);
+    addAndMakeVisible (tempoLabel);
 
-    bpmLabel.setJustificationType (juce::Justification::centred);
-    timeLabel.setJustificationType (juce::Justification::centred);
+    tempoSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    tempoSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 60, 20);
+    tempoSlider.setRange (40.0, 240.0, 0.1);
 
-    playButton.onClick = [this] { transportState.play(); };
-    stopButton.onClick = [this] { transportState.stop(); };
-    recordButton.onClick = [this] { transportState.toggleRecordArmed(); };
-
-    loopToggle.onClick = [this]
+    tempoSlider.onValueChange = [this]
     {
-        transportState.setLoopEnabled (loopToggle.getToggleState());
+        transportState.setTempo ((float) tempoSlider.getValue());
     };
 
-    metroToggle.onClick = [this]
-    {
-        transportState.setMetronomeEnabled (metroToggle.getToggleState());
-    };
+    tempoSlider.setValue (transportState.getTempo(),
+                          juce::dontSendNotification);
 
-    bpmDownButton.onClick = [this] { transportState.nudgeBpm (-5.0); };
-    bpmUpButton.onClick   = [this] { transportState.nudgeBpm (5.0); };
-
-    refreshFromState();
-}
-
-TransportBar::~TransportBar()
-{
-    transportState.removeListener (this);
-}
-
-void TransportBar::transportStateChanged()
-{
-    refreshFromState();
-    repaint();
-}
-
-void TransportBar::refreshFromState()
-{
-    playButton.setEnabled (! transportState.isPlaying());
-    stopButton.setEnabled (transportState.isPlaying());
-
-    recordButton.setToggleState (transportState.isRecordArmed(), juce::dontSendNotification);
-    loopToggle.setToggleState (transportState.isLoopEnabled(), juce::dontSendNotification);
-    metroToggle.setToggleState (transportState.isMetronomeEnabled(), juce::dontSendNotification);
-
-    bpmLabel.setText ("BPM " + juce::String ((int) std::round (transportState.getBpm())),
-                      juce::dontSendNotification);
-
-    timeLabel.setText (formatBarsBeats (transportState.getPlayheadBeats()),
-                       juce::dontSendNotification);
+    addAndMakeVisible (tempoSlider);
 }
 
 void TransportBar::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colour::fromRGB (26, 28, 34));
-    g.setColour (juce::Colour::fromRGB (50, 54, 62));
-    g.drawLine (0.0f, (float) getHeight() - 1.0f, (float) getWidth(), (float) getHeight() - 1.0f, 1.0f);
+    g.fillAll (juce::Colour (0xff202020));
+
+    g.setColour (juce::Colour (0xff2a2a2a));
+    g.drawLine (0.0f,
+                (float) getHeight(),
+                (float) getWidth(),
+                (float) getHeight(),
+                1.0f);
 }
 
 void TransportBar::resized()
 {
-    auto area = getLocalBounds().reduced (10, 8);
+    auto area = getLocalBounds().reduced (10);
 
-    auto left = area.removeFromLeft (250);
-    titleLabel.setBounds (left);
+    auto buttonArea = area.removeFromLeft (260);
 
-    auto controls = area.removeFromLeft (470);
-    playButton.setBounds (controls.removeFromLeft (70).reduced (4, 0));
-    stopButton.setBounds (controls.removeFromLeft (70).reduced (4, 0));
-    recordButton.setBounds (controls.removeFromLeft (70).reduced (4, 0));
-    loopToggle.setBounds (controls.removeFromLeft (55));
-    metroToggle.setBounds (controls.removeFromLeft (55));
-    bpmDownButton.setBounds (controls.removeFromLeft (36).reduced (2, 0));
-    bpmUpButton.setBounds (controls.removeFromLeft (36).reduced (2, 0));
+    playButton.setBounds (buttonArea.removeFromLeft (70));
+    buttonArea.removeFromLeft (6);
 
-    auto right = area.removeFromRight (180);
-    timeLabel.setBounds (right.removeFromRight (90));
-    bpmLabel.setBounds (right.removeFromRight (90));
+    stopButton.setBounds (buttonArea.removeFromLeft (70));
+    buttonArea.removeFromLeft (6);
+
+    recordButton.setBounds (buttonArea.removeFromLeft (90));
+
+    area.removeFromLeft (20);
+
+    tempoLabel.setBounds (area.removeFromLeft (60));
+    tempoSlider.setBounds (area.removeFromLeft (220));
 }

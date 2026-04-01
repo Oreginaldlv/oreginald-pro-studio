@@ -8,11 +8,16 @@ target_sources(OreginaldProStudio
     PRIVATE
         Main.cpp
         MainComponent.cpp
+
         TransportBar.cpp
         BrowserPanel.cpp
         InspectorPanel.cpp
         ArrangementView.cpp
         StatusBar.cpp
+
+        TrackEngine.cpp
+
+        ClipComponent.cpp
 )
 
 target_include_directories(OreginaldProStudio
@@ -30,6 +35,7 @@ target_link_libraries(OreginaldProStudio
     PRIVATE
         juce::juce_audio_utils
         juce::juce_gui_extra
+
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

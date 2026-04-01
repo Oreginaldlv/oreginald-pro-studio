@@ -4,9 +4,22 @@
 class OreginaldProStudioApplication : public juce::JUCEApplication
 {
 public:
-    const juce::String getApplicationName() override       { return "Oreginald Pro Studio"; }
-    const juce::String getApplicationVersion() override    { return "0.1.0"; }
-    bool moreThanOneInstanceAllowed() override             { return true; }
+    OreginaldProStudioApplication() = default;
+
+    const juce::String getApplicationName() override
+    {
+        return "Oreginald Pro Studio";
+    }
+
+    const juce::String getApplicationVersion() override
+    {
+        return "0.1.0";
+    }
+
+    bool moreThanOneInstanceAllowed() override
+    {
+        return true;
+    }
 
     void initialise (const juce::String&) override
     {
@@ -31,15 +44,21 @@ public:
     {
     public:
         explicit MainWindow (juce::String name)
-            : DocumentWindow (name,
-                              juce::Colour::fromRGB (24, 24, 28),
-                              juce::DocumentWindow::allButtons)
+            : juce::DocumentWindow (name,
+                                    juce::Desktop::getInstance().getDefaultLookAndFeel()
+                                        .findColour (juce::ResizableWindow::backgroundColourId),
+                                    juce::DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
             setResizable (true, true);
-            setResizeLimits (1100, 700, 3840, 2160);
             setContentOwned (new MainComponent(), true);
-            centreWithSize (1400, 860);
+
+            #if JUCE_IOS || JUCE_ANDROID
+                setFullScreen (true);
+            #else
+                centreWithSize (1400, 900);
+            #endif
+
             setVisible (true);
         }
 
