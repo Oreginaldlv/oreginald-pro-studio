@@ -1,5 +1,6 @@
 #include "AudioEngine.h"
 #include <cstring>
+#include <algorithm>
 
 AudioEngine::AudioEngine(TransportState& transportStateRef, TrackEngine& trackEngineRef)
     : transportState(transportStateRef), trackEngine(trackEngineRef)
@@ -57,11 +58,12 @@ void AudioEngine::audioDeviceStopped()
     mixBuffer.setSize(0, 0);
 }
 
-void AudioEngine::audioDeviceIOCallback(const float* const* inputChannelData,
-                                        int numInputChannels,
-                                        float** outputChannelData,
-                                        int numOutputChannels,
-                                        int numSamples)
+void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChannelData,
+                                                   int numInputChannels,
+                                                   float* const* outputChannelData,
+                                                   int numOutputChannels,
+                                                   int numSamples,
+                                                   const juce::AudioIODeviceCallbackContext&)
 {
     juce::ignoreUnused(inputChannelData, numInputChannels);
 
@@ -76,7 +78,7 @@ void AudioEngine::audioDeviceIOCallback(const float* const* inputChannelData,
         return;
     }
 
-    const double tempo = juce::jmax(1.0, transportState.getTempo());
+    const double tempo = std::max(1.0, (double) transportState.getTempo());
     const double samplesPerBeat = this->sampleRate * 60.0 / tempo;
 
     const double blockStartBeat = playheadBeats.load();
@@ -90,7 +92,7 @@ void AudioEngine::audioDeviceIOCallback(const float* const* inputChannelData,
     playheadBeats.store(blockStartBeat + blockDurationBeats);
 }
 
-void AudioEngine::mixToOutput(float** outputChannelData, int numOutputChannels, int numSamples)
+void AudioEngine::mixToOutput(float* const* outputChannelData, int numOutputChannels, int numSamples)
 {
     if (numOutputChannels <= 0 || numSamples <= 0)
         return;
