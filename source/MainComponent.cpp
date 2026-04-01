@@ -130,8 +130,6 @@ bool MainComponent::keyPressed(const juce::KeyPress& key)
 
 void MainComponent::timerCallback()
 {
-    const bool wasRecordingSession = recordingSessionActive;
-
     transportState.setPlayheadBeatsDirect(audioEngine.getPlayheadBeats());
     inspectorPanel.syncFromTrackEngine();
     transportBar.syncFromTransportState();

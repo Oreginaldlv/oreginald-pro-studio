@@ -132,7 +132,7 @@ void AudioEngine::renderMetronome(juce::AudioSampleBuffer& buffer,
         const bool isAccent = (beatIndex % beatsPerBarLocal) == 0;
         const float frequency = isAccent ? metronomeAccentFreq : metronomeBeatFreq;
         const float gain = isAccent ? metronomeAccentGain : metronomeBeatGain;
-        const double phaseIncrement = juce::MathConstants<double>::twoPi * frequency / sampleRate;
+        const double phaseIncrement = juce::MathConstants<double>::twoPi * (double) frequency / sampleRate;
 
         for (int i = 0; i < metronomeLengthSamples; ++i)
         {
@@ -141,7 +141,7 @@ void AudioEngine::renderMetronome(juce::AudioSampleBuffer& buffer,
                 break;
 
             const float envelope = 1.0f - (float) i / (float) metronomeLengthSamples;
-            const float value = std::sin((double) i * phaseIncrement) * envelope * gain;
+            const float value = (float) (std::sin((double) i * phaseIncrement) * (double) envelope * (double) gain);
 
             for (int channel = 0; channel < channels; ++channel)
                 buffer.addSample(channel, sampleIndex, value);
@@ -250,7 +250,6 @@ void AudioEngine::writeRecordingBlock(const float* const* inputChannelData,
     }
 
     writer->write(recordingBuffer.getArrayOfReadPointers(),
-                  recordingChannels,
                   numSamples);
 
     recordedSamples += numSamples;
