@@ -32,6 +32,7 @@ private:
     void loadProject();
     bool loadProjectFromFile(const juce::File& file, bool showStatus = true);
     void setTransientStatus(const juce::String& message);
+    juce::File createRecordingFile(const juce::String& trackName) const;
 
     // core state
     TransportState transportState;
@@ -49,6 +50,13 @@ private:
 
     juce::String transientStatus;
     double transientStatusExpiryMs { 0.0 };
+
+    // recording session
+    bool recordingSessionActive { false };
+    int recordingTrackIndex { -1 };
+    double recordingStartBeat { 0.0 };
+    float recordingTempoBpm { 120.0f };
+    juce::File recordingFile;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

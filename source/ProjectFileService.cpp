@@ -141,6 +141,15 @@ bool ProjectFileService::loadProject(const juce::File& projectFile,
         return lhs.startBeat < rhs.startBeat;
     });
 
+    const bool loopEnabled = (bool) projectTree.getProperty("loopEnabled", false);
+    const double loopStart = (double) projectTree.getProperty("loopStartBeats", transportState.getLoopStartBeats());
+    const double loopEnd = (double) projectTree.getProperty("loopEndBeats", transportState.getLoopEndBeats());
+    const bool metronomeEnabled = (bool) projectTree.getProperty("metronomeEnabled", false);
+
+    transportState.setLoopRange(loopStart, loopEnd);
+    transportState.setLoopEnabled(loopEnabled);
+    transportState.setMetronomeEnabled(metronomeEnabled);
+
     trackEngine.replaceProjectData(tracks, clips, sanitizedTrackIndex);
     transportState.setTempo((float) tempo);
     transportState.setPlaying(false);
@@ -157,6 +166,10 @@ juce::ValueTree ProjectFileService::createProjectTree(const TrackEngine& trackEn
     project.setProperty("tempo", transportState.getTempo(), nullptr);
     project.setProperty("playheadBeats", transportState.getPlayheadBeats(), nullptr);
     project.setProperty("selectedTrackIndex", trackEngine.getSelectedTrackIndex(), nullptr);
+    project.setProperty("loopEnabled", transportState.isLoopEnabled(), nullptr);
+    project.setProperty("loopStartBeats", transportState.getLoopStartBeats(), nullptr);
+    project.setProperty("loopEndBeats", transportState.getLoopEndBeats(), nullptr);
+    project.setProperty("metronomeEnabled", transportState.isMetronomeEnabled(), nullptr);
 
     juce::ValueTree tracksNode("Tracks");
 

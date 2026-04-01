@@ -24,6 +24,28 @@ TransportBar::TransportBar (TransportState& state)
     };
     addAndMakeVisible (recordButton);
 
+    loopToggle.setClickingTogglesState(true);
+
+    loopToggle.onClick = [this]
+    {
+        if (onLoopToggled)
+            onLoopToggled(loopToggle.getToggleState());
+
+        syncFromTransportState();
+    };
+    addAndMakeVisible (loopToggle);
+
+    metronomeToggle.setClickingTogglesState(true);
+
+    metronomeToggle.onClick = [this]
+    {
+        if (onMetronomeToggled)
+            onMetronomeToggled(metronomeToggle.getToggleState());
+
+        syncFromTransportState();
+    };
+    addAndMakeVisible(metronomeToggle);
+
     saveButton.onClick = [this]
     {
         if (onSaveClicked)
@@ -75,7 +97,7 @@ void TransportBar::resized()
 {
     auto area = getLocalBounds().reduced (10);
 
-    auto buttonArea = area.removeFromLeft (430);
+    auto buttonArea = area.removeFromLeft (610);
 
     playButton.setBounds (buttonArea.removeFromLeft (70));
     buttonArea.removeFromLeft (6);
@@ -85,6 +107,12 @@ void TransportBar::resized()
 
     recordButton.setBounds (buttonArea.removeFromLeft (90));
     buttonArea.removeFromLeft (12);
+
+    loopToggle.setBounds(buttonArea.removeFromLeft(70));
+    buttonArea.removeFromLeft(6);
+
+    metronomeToggle.setBounds(buttonArea.removeFromLeft(70));
+    buttonArea.removeFromLeft(6);
 
     saveButton.setBounds (buttonArea.removeFromLeft (70));
     buttonArea.removeFromLeft (6);
@@ -102,6 +130,9 @@ void TransportBar::syncFromTransportState()
     tempoSlider.setValue(transportState.getTempo(), juce::dontSendNotification);
     updateButtonColours();
     repaint();
+
+    loopToggle.setToggleState(transportState.isLoopEnabled(), juce::dontSendNotification);
+    metronomeToggle.setToggleState(transportState.isMetronomeEnabled(), juce::dontSendNotification);
 }
 
 void TransportBar::updateButtonColours()
@@ -117,4 +148,12 @@ void TransportBar::updateButtonColours()
     recordButton.setColour(juce::TextButton::buttonColourId,
                            transportState.isRecording() ? juce::Colour(0xff9d3131)
                                                         : juce::Colour(0xff404040));
+
+    loopToggle.setColour(juce::TextButton::buttonColourId,
+                         transportState.isLoopEnabled() ? juce::Colour(0xff3a9c3c)
+                                                        : juce::Colour(0xff404040));
+
+    metronomeToggle.setColour(juce::TextButton::buttonColourId,
+                              transportState.isMetronomeEnabled() ? juce::Colour(0xff2f7aa1)
+                                                                  : juce::Colour(0xff404040));
 }

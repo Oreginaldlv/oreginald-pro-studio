@@ -25,17 +25,28 @@ public:
     void setClipName(const juce::String& newName);
     const juce::String& getClipName() const noexcept;
 
+    void setClipFile(const juce::String& newPath);
+    void setAudible(bool isAudible);
+
 private:
     bool isNearRightEdge(int x) const noexcept;
 
     juce::String name;
+    juce::String filePath;
     bool selected { false };
+    bool audible { true };
+    bool hasFile { false };
     bool resizing { false };
 
     juce::Point<int> dragStart;
     juce::Rectangle<int> dragStartBounds;
 
     static constexpr int resizeHandleWidth = 10;
+
+    static juce::AudioFormatManager& getSharedFormatManager();
+    static juce::AudioThumbnailCache& getSharedThumbnailCache();
+
+    juce::AudioThumbnail thumbnail;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ClipComponent)
 };

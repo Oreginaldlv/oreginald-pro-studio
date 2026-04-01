@@ -1,6 +1,16 @@
 #include <memory>
 #include "MainComponent.h"
 
+namespace
+{
+    juce::String formatLoopBeat(double beats, int beatsPerBar)
+    {
+        const int bar = (int)(beats / beatsPerBar) + 1;
+        const int beatNumber = ((int)beats % beatsPerBar) + 1;
+        return juce::String(bar) + ":" + juce::String(beatNumber);
+    }
+}
+
 MainComponent::MainComponent()
     : transportBar(transportState),
       inspectorPanel(trackEngine),
@@ -38,6 +48,19 @@ MainComponent::MainComponent()
     transportBar.onLoadClicked = [this]
     {
         loadProject();
+    };
+
+    transportBar.onLoopToggled = [this](bool enabled)
+    {
+        transportState.setLoopEnabled(enabled);
+        arrangementView.repaint();
+        setTransientStatus(enabled ? "Loop enabled" : "Loop disabled");
+    };
+
+    transportBar.onMetronomeToggled = [this](bool enabled)
+    {
+        transportState.setMetronomeEnabled(enabled);
+        setTransientStatus(enabled ? "Metronome on" : "Metronome off");
     };
 
     arrangementView.onSaveRequested = [this]()
@@ -107,9 +130,80 @@ bool MainComponent::keyPressed(const juce::KeyPress& key)
 
 void MainComponent::timerCallback()
 {
+    const bool wasRecordingSession = recordingSessionActive;
+
     transportState.setPlayheadBeatsDirect(audioEngine.getPlayheadBeats());
     inspectorPanel.syncFromTrackEngine();
     transportBar.syncFromTransportState();
+
+    const bool shouldRecord = transportState.isPlaying()
+                              && transportState.isRecording()
+                              && trackEngine.anyTrackArmed();
+
+    if (shouldRecord && !recordingSessionActive)
+    {
+        const int armedIndex = trackEngine.getFirstArmedTrackIndex();
+
+        if (armedIndex >= 0)
+        {
+            recordingTrackIndex = armedIndex;
+            recordingStartBeat = transportState.getPlayheadBeats();
+            recordingTempoBpm = transportState.getTempo();
+            const auto trackName = trackEngine.getTrack(armedIndex).name;
+            const auto file = createRecordingFile(trackName);
+
+            if (audioEngine.startRecording(file, 1))
+            {
+                recordingFile = file;
+                recordingSessionActive = true;
+                setTransientStatus("Recording: " + trackName);
+            }
+            else
+            {
+                transportState.setRecording(false);
+                setTransientStatus("Recording failed");
+            }
+        }
+        else
+        {
+            transportState.setRecording(false);
+            setTransientStatus("No armed track to record");
+        }
+    }
+
+    if (recordingSessionActive && (!shouldRecord || !transportState.isPlaying()))
+    {
+        const auto samples = audioEngine.stopRecording();
+        const bool hadAudio = samples > 0;
+        recordingSessionActive = false;
+
+        if (hadAudio && recordingFile.existsAsFile())
+        {
+            const double durationSeconds = (double) samples / juce::jmax(1.0, audioEngine.getSampleRate());
+            double lengthBeats = durationSeconds * ((double) recordingTempoBpm / 60.0);
+            lengthBeats = juce::jmax(1.0, lengthBeats);
+
+            const juce::String clipName = recordingFile.getFileNameWithoutExtension();
+
+            trackEngine.addClip(recordingTrackIndex,
+                                recordingStartBeat,
+                                lengthBeats,
+                                clipName,
+                                recordingFile.getFullPathName());
+
+            refreshProjectState();
+            setTransientStatus("Recorded: " + clipName);
+        }
+        else
+        {
+            if (recordingFile.existsAsFile())
+                recordingFile.deleteFile();
+
+            setTransientStatus("Recording canceled");
+        }
+
+        transportState.setRecording(false);
+    }
 
     arrangementView.repaint();
     inspectorPanel.repaint();
@@ -137,8 +231,25 @@ void MainComponent::timerCallback()
            << " | Playing: "
            << (transportState.isPlaying() ? "Yes" : "No")
 
-           << " | Recording: "
-           << (transportState.isRecording() ? "Yes" : "No");
+           << " | Recording: ";
+
+    if (recordingSessionActive && recordingTrackIndex >= 0)
+        status << "Yes (" << trackEngine.getTrack(recordingTrackIndex).name << ")";
+    else
+        status << (transportState.isRecording() ? "Armed" : "No");
+
+    const int beatsPerBar = transportState.getBeatsPerBar();
+
+    status << " | Loop: ";
+    if (transportState.isLoopEnabled())
+        status << formatLoopBeat(transportState.getLoopStartBeats(), beatsPerBar)
+               << " - "
+               << formatLoopBeat(transportState.getLoopEndBeats(), beatsPerBar);
+    else
+        status << "Off";
+
+    status << " | Metronome: "
+           << (transportState.isMetronomeEnabled() ? "On" : "Off");
 
     const double nowMs = juce::Time::getMillisecondCounterHiRes();
 
@@ -286,4 +397,24 @@ void MainComponent::setTransientStatus(const juce::String& message)
 {
     transientStatus = message;
     transientStatusExpiryMs = juce::Time::getMillisecondCounterHiRes() + 4000.0;
+}
+
+juce::File MainComponent::createRecordingFile(const juce::String& trackName) const
+{
+    auto recordingsDir = juce::File::getCurrentWorkingDirectory().getChildFile("recordings");
+    recordingsDir.createDirectory();
+
+    const auto now = juce::Time::getCurrentTime();
+    const auto sanitizedTrack = trackName.retainCharacters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-");
+    const auto safeTrack = sanitizedTrack.isEmpty() ? juce::String("Track") : sanitizedTrack;
+    const auto filename = juce::String::formatted("%s_%04d%02d%02d_%02d%02d%02d.wav",
+                                                  safeTrack.toRawUTF8(),
+                                                  now.getYear(),
+                                                  now.getMonth() + 1,
+                                                  now.getDayOfMonth(),
+                                                  now.getHours(),
+                                                  now.getMinutes(),
+                                                  now.getSeconds());
+
+    return recordingsDir.getChildFile(filename);
 }

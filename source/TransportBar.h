@@ -13,6 +13,8 @@ public:
 
     std::function<void()> onSaveClicked;
     std::function<void()> onLoadClicked;
+    std::function<void(bool)> onLoopToggled;
+    std::function<void(bool)> onMetronomeToggled;
 
 private:
     void updateButtonColours();
@@ -24,6 +26,8 @@ private:
     juce::TextButton recordButton { "Record" };
     juce::TextButton saveButton { "Save" };
     juce::TextButton loadButton { "Load" };
+    juce::ToggleButton loopToggle { "Loop" };
+    juce::ToggleButton metronomeToggle { "Metro" };
 
     juce::Label tempoLabel;
     juce::Slider tempoSlider;

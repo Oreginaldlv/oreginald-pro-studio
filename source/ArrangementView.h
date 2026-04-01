@@ -49,6 +49,7 @@ private:
     juce::OwnedArray<ClipComponent> clipComponents;
 
     int selectedClipIndex { -1 };
+    bool loopSelectionPendingEnd { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ArrangementView)
 };

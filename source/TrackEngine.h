@@ -114,6 +114,24 @@ public:
             tracks.getReference (index).pan = juce::jlimit (-1.0f, 1.0f, newPan);
     }
 
+    bool anyTrackArmed() const
+    {
+        for (const auto& track : tracks)
+            if (track.armed)
+                return true;
+
+        return false;
+    }
+
+    int getFirstArmedTrackIndex() const
+    {
+        for (int i = 0; i < tracks.size(); ++i)
+            if (tracks[i].armed)
+                return i;
+
+        return -1;
+    }
+
     bool anyTrackSoloed() const
     {
         for (const auto& track : tracks)

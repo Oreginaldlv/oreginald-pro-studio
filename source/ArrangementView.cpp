@@ -21,6 +21,23 @@ void ArrangementView::paint(juce::Graphics& g)
     const int trackHeight = getTrackHeight();
     const int rulerHeight = grid.getRulerHeight();
     const int timelineStartX = getTimelineStartX();
+    const int pixelsPerBeat = grid.getPixelsPerBeat();
+
+    if (transportState.isLoopEnabled())
+    {
+        const double loopStart = transportState.getLoopStartBeats();
+        const double loopEnd = transportState.getLoopEndBeats();
+
+        if (loopEnd > loopStart)
+        {
+            const int loopX = timelineStartX + (int) std::round(loopStart * pixelsPerBeat);
+            const int loopRight = timelineStartX + (int) std::round(loopEnd * pixelsPerBeat);
+            const int loopWidth = juce::jmax(4, loopRight - loopX);
+
+            g.setColour(juce::Colour(0x223a9c3c));
+            g.fillRect(juce::Rectangle<int>(loopX, 0, loopWidth, getHeight()));
+        }
+    }
 
     auto rulerArea = juce::Rectangle<int>(timelineStartX, 0, getWidth() - timelineStartX, rulerHeight);
     grid.drawRuler(g, rulerArea);
@@ -108,6 +125,26 @@ void ArrangementView::mouseDown(const juce::MouseEvent& e)
 
     if (e.y < getTimelineTop() && e.x >= timelineStartX)
     {
+        if (e.mods.isShiftDown())
+        {
+            const double beat = getBeatForX(e.x);
+
+            if (! loopSelectionPendingEnd)
+            {
+                transportState.setLoopStartBeats(beat);
+                loopSelectionPendingEnd = true;
+            }
+            else
+            {
+                transportState.setLoopEndBeats(beat);
+                loopSelectionPendingEnd = false;
+            }
+
+            transportState.setLoopEnabled(true);
+            repaint();
+            return;
+        }
+
         setPlayheadFromX(e.x);
         repaint();
         return;
@@ -280,7 +317,10 @@ void ArrangementView::refreshClipComponents()
 
     for (int i = 0; i < clipComponents.size() && i < clipCount; ++i)
     {
-        clipComponents[i]->setClipName(trackEngine.getClip(i).name);
+        const auto& clip = trackEngine.getClip(i);
+        clipComponents[i]->setClipName(clip.name);
+        clipComponents[i]->setClipFile(clip.filePath);
+        clipComponents[i]->setAudible(trackEngine.isTrackAudible(clip.trackIndex));
         clipComponents[i]->setSelected(i == selectedClipIndex);
     }
 }
