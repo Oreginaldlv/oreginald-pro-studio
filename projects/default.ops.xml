@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<OPSProject tempo="120.0" playheadBeats="2.0" selectedTrackIndex="4">
+<OPSProject tempo="120.0" playheadBeats="0.0" selectedTrackIndex="4">
   <Tracks>
     <Track name="Drums" armed="0" muted="0" solo="0" volume="0.800000011920929"
            pan="0.0"/>
@@ -10,17 +10,20 @@
            pan="0.0"/>
     <Track name="Lead" armed="0" muted="0" solo="0" volume="0.800000011920929"
            pan="0.0"/>
-    <Track name="Vox" armed="0" muted="0" solo="0" volume="0.800000011920929"
+    <Track name="Vox" armed="0" muted="0" solo="1" volume="0.800000011920929"
            pan="0.0"/>
   </Tracks>
   <Clips>
-    <Clip trackIndex="1" startBeat="1.5" lengthBeats="2.0" name="Bass Verse"
-          filePath=""/>
-    <Clip trackIndex="2" startBeat="2.0" lengthBeats="1.5" name="Keys Pad"
-          filePath=""/>
-    <Clip trackIndex="3" startBeat="0.1666666666666667" lengthBeats="2.0"
-          name="Lead Hook" filePath=""/>
     <Clip trackIndex="0" startBeat="0.0" lengthBeats="42.66666666666666"
-          name="UNISON_DRUMLOOP_Wrecked - Kick Loop (75)" filePath="D:\Studio\Work\omm\Audio\UNISON_DRUMLOOP_Wrecked - Kick Loop (75).wav"/>
+          endBeat="42.66666666666666" name="UNISON_DRUMLOOP_Wrecked - Kick Loop (75)"
+          filePath="D:\Studio\Work\omm\Audio\UNISON_DRUMLOOP_Wrecked - Kick Loop (75).wav"/>
+    <Clip trackIndex="1" startBeat="1.5" lengthBeats="2.0" endBeat="3.5"
+          name="Bass Verse" filePath=""/>
+    <Clip trackIndex="2" startBeat="2.0" lengthBeats="1.5" endBeat="3.5"
+          name="Keys Pad" filePath=""/>
+    <Clip trackIndex="3" startBeat="0.1666666666666667" lengthBeats="2.0"
+          endBeat="2.166666666666667" name="Lead Hook" filePath=""/>
+    <Clip trackIndex="4" startBeat="0.01666666666666667" lengthBeats="29.41197278911565"
+          endBeat="29.42863945578231" name="17 Outro" filePath="C:\Users\User\Oreginaldlv\empire-site\Downloads\Its A Dirty Game\17 Outro.mp3"/>
   </Clips>
 </OPSProject>

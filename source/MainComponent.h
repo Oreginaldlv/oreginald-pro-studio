@@ -30,6 +30,8 @@ private:
     void refreshProjectState();
     void saveProject();
     void loadProject();
+    bool loadProjectFromFile(const juce::File& file, bool showStatus = true);
+    void setTransientStatus(const juce::String& message);
 
     // core state
     TransportState transportState;
@@ -44,6 +46,9 @@ private:
     InspectorPanel inspectorPanel;
     ArrangementView arrangementView;
     StatusBar statusBar;
+
+    juce::String transientStatus;
+    double transientStatusExpiryMs { 0.0 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

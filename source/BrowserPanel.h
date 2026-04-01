@@ -16,7 +16,7 @@ private:
     void importAudioFiles();
 
     juce::Label headerLabel;
-    juce::TextButton importButton { "Import WAV" };
+    juce::TextButton importButton { "Import audio" };
     juce::ListBox fileList;
     juce::Array<juce::File> audioFiles;
     std::unique_ptr<juce::FileChooser> fileChooser;

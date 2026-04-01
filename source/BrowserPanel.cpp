@@ -77,11 +77,15 @@ void BrowserPanel::refreshFileList()
 {
     audioFiles.clear();
 
-    const auto assetDirectory = juce::File::getCurrentWorkingDirectory().getChildFile ("assets");
-    const auto files = assetDirectory.findChildFiles (juce::File::findFiles, true, "*.wav");
+    const auto assetDirectory = juce::File::getCurrentWorkingDirectory().getChildFile("assets");
 
-    for (const auto& file : files)
-        audioFiles.add (file);
+    for (const auto& pattern : { "*.wav", "*.mp3" })
+    {
+        const auto files = assetDirectory.findChildFiles(juce::File::findFiles, true, pattern);
+
+        for (const auto& file : files)
+            audioFiles.addIfNotAlreadyThere(file);
+    }
 
     fileList.updateContent();
     fileList.repaint();
@@ -89,9 +93,9 @@ void BrowserPanel::refreshFileList()
 
 void BrowserPanel::importAudioFiles()
 {
-    fileChooser = std::make_unique<juce::FileChooser>("Import WAV file",
+    fileChooser = std::make_unique<juce::FileChooser>("Import audio file",
                                                       juce::File::getCurrentWorkingDirectory(),
-                                                      "*.wav;*.mp3"
+                                                      "*.wav;*.mp3");
 
     fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                              [this](const juce::FileChooser& chooser)
@@ -101,8 +105,11 @@ void BrowserPanel::importAudioFiles()
                                  if (file == juce::File{})
                                      return;
 
-                                 audioFiles.addIfNotAlreadyThere(file);
-                                 fileList.updateContent();
-                                 fileList.repaint();
+                                 if (file.hasFileExtension("wav") || file.hasFileExtension("mp3"))
+                                 {
+                                     audioFiles.addIfNotAlreadyThere(file);
+                                     fileList.updateContent();
+                                     fileList.repaint();
+                                 }
                              });
 }

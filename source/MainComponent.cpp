@@ -1,3 +1,4 @@
+#include <memory>
 #include "MainComponent.h"
 
 MainComponent::MainComponent()
@@ -59,7 +60,7 @@ MainComponent::MainComponent()
     setSize(1400, 900);
 
     if (currentProjectFile.existsAsFile())
-        loadProject();
+        loadProjectFromFile(currentProjectFile, false);
 
     refreshProjectState();
 }
@@ -139,6 +140,14 @@ void MainComponent::timerCallback()
            << " | Recording: "
            << (transportState.isRecording() ? "Yes" : "No");
 
+    const double nowMs = juce::Time::getMillisecondCounterHiRes();
+
+    if (nowMs >= transientStatusExpiryMs)
+        transientStatus.clear();
+
+    if (! transientStatus.isEmpty())
+        status << " | " << transientStatus;
+
     statusBar.setStatusText(status);
 }
 
@@ -189,15 +198,92 @@ void MainComponent::refreshProjectState()
 
 void MainComponent::saveProject()
 {
-    projectFileService.saveProject(currentProjectFile, trackEngine, transportState);
+    auto chooser = std::make_shared<juce::FileChooser>("Save project file",
+                                                        currentProjectFile.existsAsFile()
+                                                            ? currentProjectFile
+                                                            : juce::File::getCurrentWorkingDirectory(),
+                                                        "*.ops.xml");
+
+    chooser->launchAsync(juce::FileBrowserComponent::saveMode,
+                         [this, chooser](const juce::FileChooser& dialog)
+    {
+        auto file = dialog.getResult();
+
+        if (file == juce::File{})
+        {
+            setTransientStatus("Save canceled");
+            return;
+        }
+
+        if (! file.hasFileExtension(".ops.xml"))
+            file = file.withFileExtension(".ops.xml");
+
+        if (projectFileService.saveProject(file, trackEngine, transportState))
+        {
+            currentProjectFile = file;
+            setTransientStatus("Project saved: " + file.getFileName());
+        }
+        else
+        {
+            setTransientStatus("Save failed");
+        }
+    });
 }
 
 void MainComponent::loadProject()
 {
-    if (! projectFileService.loadProject(currentProjectFile, trackEngine, transportState))
-        return;
+    auto chooser = std::make_shared<juce::FileChooser>("Open project",
+                                                        currentProjectFile.existsAsFile()
+                                                            ? currentProjectFile
+                                                            : juce::File::getCurrentWorkingDirectory(),
+                                                        "*.ops.xml");
 
+    chooser->launchAsync(juce::FileBrowserComponent::openMode,
+                         [this, chooser](const juce::FileChooser& dialog)
+    {
+        const auto file = dialog.getResult();
+
+        if (file == juce::File{})
+        {
+            setTransientStatus("Load canceled");
+            return;
+        }
+
+        loadProjectFromFile(file);
+    });
+}
+
+bool MainComponent::loadProjectFromFile(const juce::File& file, bool showStatus)
+{
+    if (! file.existsAsFile())
+    {
+        if (showStatus)
+            setTransientStatus("Project file not found");
+
+        return false;
+    }
+
+    if (! projectFileService.loadProject(file, trackEngine, transportState))
+    {
+        if (showStatus)
+            setTransientStatus("Load failed");
+
+        return false;
+    }
+
+    currentProjectFile = file;
     audioEngine.jumpToBeat(transportState.getPlayheadBeats());
     arrangementView.resetSelection();
     refreshProjectState();
+
+    if (showStatus)
+        setTransientStatus("Project loaded: " + file.getFileName());
+
+    return true;
+}
+
+void MainComponent::setTransientStatus(const juce::String& message)
+{
+    transientStatus = message;
+    transientStatusExpiryMs = juce::Time::getMillisecondCounterHiRes() + 4000.0;
 }
