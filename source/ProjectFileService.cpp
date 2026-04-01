@@ -4,6 +4,33 @@
 
 #include "ProjectFileService.h"
 
+namespace
+{
+    juce::String getTrackName(const juce::ValueTree& node, int index)
+    {
+        auto name = node.getProperty("name", juce::String()).toString().trim();
+        if (name.isEmpty())
+            return "Track " + juce::String(index + 1);
+
+        return name;
+    }
+
+    juce::String getClipName(const juce::ValueTree& node, int index)
+    {
+        auto name = node.getProperty("name", juce::String()).toString().trim();
+        if (name.isEmpty())
+            return "Clip " + juce::String(index + 1);
+
+        return name;
+    }
+
+    template <typename T>
+    T clamp(const T value, const T minimum, const T maximum)
+    {
+        return juce::jlimit(minimum, maximum, value);
+    }
+}
+
 bool ProjectFileService::saveProject(const juce::File& projectFile,
                                      const TrackEngine& trackEngine,
                                      const TransportState& transportState) const
@@ -44,15 +71,17 @@ bool ProjectFileService::loadProject(const juce::File& projectFile,
     {
         for (int i = 0; i < tracksNode.getNumChildren(); ++i)
         {
-            auto trackNode = tracksNode.getChild(i);
-            tracks.add({
-                trackNode["name"].toString(),
-                (bool) trackNode["armed"],
-                (bool) trackNode["muted"],
-                (bool) trackNode["solo"],
-                (float) (double) trackNode["volume"],
-                (float) (double) trackNode["pan"]
-            });
+            const auto trackNode = tracksNode.getChild(i);
+            TrackEngine::Track track;
+
+            track.name = getTrackName(trackNode, i);
+            track.armed = (bool) trackNode.getProperty("armed", false);
+            track.muted = (bool) trackNode.getProperty("muted", false);
+            track.solo = (bool) trackNode.getProperty("solo", false);
+            track.volume = clamp((float) (double) trackNode.getProperty("volume", track.volume), 0.0f, 1.5f);
+            track.pan = clamp((float) (double) trackNode.getProperty("pan", track.pan), -1.0f, 1.0f);
+
+            tracks.add(track);
         }
     }
 
@@ -61,21 +90,16 @@ bool ProjectFileService::loadProject(const juce::File& projectFile,
         for (int i = 0; i < clipsNode.getNumChildren(); ++i)
         {
             const auto clipNode = clipsNode.getChild(i);
-            const int trackIndex = clipNode.hasProperty("trackIndex")
-                ? (int) (double) clipNode["trackIndex"]
-                : 0;
+            TrackEngine::Clip clip;
 
-            const double rawStartBeat = clipNode.hasProperty("startBeat")
-                ? (double) clipNode["startBeat"]
-                : 0.0;
-            const double startBeat = std::isfinite(rawStartBeat) ? rawStartBeat : 0.0;
+            clip.trackIndex = (int) (double) clipNode.getProperty("trackIndex", clip.trackIndex);
+            const double startBeatRaw = (double) clipNode.getProperty("startBeat", 0.0);
+            const double startBeat = std::isfinite(startBeatRaw) ? startBeatRaw : 0.0;
 
-            double lengthBeats = clipNode.hasProperty("lengthBeats")
-                ? (double) clipNode["lengthBeats"]
-                : std::numeric_limits<double>::quiet_NaN();
-            const double endBeat = clipNode.hasProperty("endBeat")
-                ? (double) clipNode["endBeat"]
-                : std::numeric_limits<double>::quiet_NaN();
+            double lengthBeats = (double) clipNode.getProperty("lengthBeats",
+                                                               std::numeric_limits<double>::quiet_NaN());
+            const double endBeat = (double) clipNode.getProperty("endBeat",
+                                                                 std::numeric_limits<double>::quiet_NaN());
 
             if (! std::isfinite(lengthBeats) && std::isfinite(endBeat))
                 lengthBeats = endBeat - startBeat;
@@ -83,23 +107,22 @@ bool ProjectFileService::loadProject(const juce::File& projectFile,
             if (! std::isfinite(lengthBeats))
                 lengthBeats = 1.0;
 
-            clips.add({
-                trackIndex,
-                startBeat,
-                lengthBeats,
-                clipNode["name"].toString(),
-                clipNode["filePath"].toString()
-            });
+            clip.startBeat = juce::jmax(0.0, startBeat);
+            clip.lengthBeats = juce::jmax(1.0, lengthBeats);
+            clip.name = getClipName(clipNode, i);
+            clip.filePath = clipNode.getProperty("filePath", juce::String()).toString();
+
+            clips.add(clip);
         }
     }
 
-    const double tempoRaw = (double) projectTree.getProperty("tempo", 120.0);
-    const double tempoValue = std::isfinite(tempoRaw) ? tempoRaw : 120.0;
+    const double tempoRaw = (double) projectTree.getProperty("tempo", transportState.getTempo());
+    const double tempo = std::isfinite(tempoRaw) ? tempoRaw : 120.0;
 
-    const double playheadRaw = (double) projectTree.getProperty("playheadBeats", 0.0);
+    const double playheadRaw = (double) projectTree.getProperty("playheadBeats", transportState.getPlayheadBeats());
     const double playheadBeats = std::isfinite(playheadRaw) ? playheadRaw : 0.0;
-    const int requestedTrackIndex = (int) projectTree.getProperty("selectedTrackIndex", 0);
 
+    const int requestedTrackIndex = (int) projectTree.getProperty("selectedTrackIndex", trackEngine.getSelectedTrackIndex());
     const int trackCount = juce::jmax(1, tracks.size());
     const int sanitizedTrackIndex = juce::jlimit(0, trackCount - 1, requestedTrackIndex);
 
@@ -119,10 +142,11 @@ bool ProjectFileService::loadProject(const juce::File& projectFile,
     });
 
     trackEngine.replaceProjectData(tracks, clips, sanitizedTrackIndex);
-    transportState.setTempo((float) tempoValue);
+    transportState.setTempo((float) tempo);
     transportState.setPlaying(false);
     transportState.setRecording(false);
     transportState.setPlayheadBeats(juce::jmax(0.0, playheadBeats));
+
     return true;
 }
 
@@ -167,9 +191,9 @@ juce::ValueTree ProjectFileService::createProjectTree(const TrackEngine& trackEn
         clipNode.setProperty("trackIndex", clip.trackIndex, nullptr);
         clipNode.setProperty("startBeat", clip.startBeat, nullptr);
         clipNode.setProperty("lengthBeats", clip.lengthBeats, nullptr);
+        clipNode.setProperty("endBeat", clip.startBeat + clip.lengthBeats, nullptr);
         clipNode.setProperty("name", clip.name, nullptr);
         clipNode.setProperty("filePath", clip.filePath, nullptr);
-        clipNode.setProperty("endBeat", clip.startBeat + clip.lengthBeats, nullptr);
         clipsNode.appendChild(clipNode, nullptr);
     }
 
