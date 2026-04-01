@@ -22,6 +22,7 @@ target_sources(OreginaldProStudio
         AudioEngine.cpp
         AudioClipSource.cpp
         TrackAudioChannel.cpp
+        ProjectFileService.cpp
 )
 
 target_include_directories(OreginaldProStudio

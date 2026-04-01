@@ -20,6 +20,7 @@ public:
         double startBeat { 0.0 };
         double lengthBeats { 1.0 };
         juce::String name;
+        juce::String filePath;
     };
 
     TrackEngine()
@@ -30,11 +31,11 @@ public:
         tracks.add ({ "Lead",  false, false, false, 0.8f, 0.0f });
         tracks.add ({ "Vox",   false, false, false, 0.8f, 0.0f });
 
-        clips.add({ 0, 0.5, 2.0, "Drum Loop A" });
-        clips.add({ 1, 1.5, 2.0, "Bass Verse" });
-        clips.add({ 2, 2.0, 1.5, "Keys Pad" });
-        clips.add({ 3, 2.5, 1.2, "Lead Hook" });
-        clips.add({ 4, 3.0, 1.6, "Vox Main" });
+        clips.add({ 0, 0.5, 2.0, "Drum Loop A", {} });
+        clips.add({ 1, 1.5, 2.0, "Bass Verse", {} });
+        clips.add({ 2, 2.0, 1.5, "Keys Pad", {} });
+        clips.add({ 3, 2.5, 1.2, "Lead Hook", {} });
+        clips.add({ 4, 3.0, 1.6, "Vox Main", {} });
     }
 
     int getNumTracks() const noexcept
@@ -188,6 +189,70 @@ public:
             return;
 
         clips.getReference(index).lengthBeats = juce::jmax (minClipLength, lengthBeats);
+    }
+
+    int addClip (int trackIndex, double startBeat, double lengthBeats, const juce::String& name, const juce::String& filePath = {})
+    {
+        if (! juce::isPositiveAndBelow (trackIndex, tracks.size()))
+            return -1;
+
+        clips.add ({ trackIndex, juce::jmax (0.0, startBeat), juce::jmax (minClipLength, lengthBeats), name, filePath });
+        return clips.size() - 1;
+    }
+
+    bool duplicateClip (int index)
+    {
+        if (! juce::isPositiveAndBelow (index, clips.size()))
+            return false;
+
+        auto copy = clips.getReference (index);
+        copy.startBeat += copy.lengthBeats;
+        copy.name = copy.name + " Copy";
+        clips.insert (index + 1, copy);
+        return true;
+    }
+
+    bool removeClip (int index)
+    {
+        if (! juce::isPositiveAndBelow (index, clips.size()))
+            return false;
+
+        clips.remove (index);
+        return true;
+    }
+
+    void clearClips()
+    {
+        clips.clear();
+    }
+
+    void clearTracks()
+    {
+        tracks.clear();
+        selectedTrackIndex = 0;
+    }
+
+    void addTrack (const juce::String& name,
+                   bool armed = false,
+                   bool muted = false,
+                   bool solo = false,
+                   float volume = 0.8f,
+                   float pan = 0.0f)
+    {
+        tracks.add ({ name, armed, muted, solo, juce::jlimit (0.0f, 1.5f, volume), juce::jlimit (-1.0f, 1.0f, pan) });
+    }
+
+    void replaceProjectData (const juce::Array<Track>& newTracks,
+                             const juce::Array<Clip>& newClips,
+                             int newSelectedTrackIndex)
+    {
+        tracks = newTracks;
+        clips = newClips;
+
+        if (tracks.isEmpty())
+            tracks.add ({ "Track 1", false, false, false, 0.8f, 0.0f });
+
+        selectedTrackIndex = juce::jlimit (0, tracks.size() - 1, newSelectedTrackIndex);
     }
 
 private:

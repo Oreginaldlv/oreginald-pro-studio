@@ -26,7 +26,8 @@ void TrackAudioChannel::refreshClips()
             clipSources.emplace_back(std::make_unique<AudioClipSource>(clip.trackIndex,
                                                                         clip.startBeat,
                                                                         clip.lengthBeats,
-                                                                        clip.name));
+                                                                        clip.name,
+                                                                        clip.filePath));
         }
     }
 

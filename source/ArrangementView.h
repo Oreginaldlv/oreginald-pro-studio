@@ -5,7 +5,8 @@
 #include "TimelineGrid.h"
 #include "TransportState.h"
 
-class ArrangementView : public juce::Component
+class ArrangementView : public juce::Component,
+                        public juce::FileDragAndDropTarget
 {
 public:
     ArrangementView(TrackEngine& engine, TransportState& state);
@@ -13,15 +14,23 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void mouseDown(const juce::MouseEvent& e) override;
+    bool keyPressed(const juce::KeyPress& key) override;
+    bool isInterestedInFileDrag(const juce::StringArray& files) override;
+    void filesDropped(const juce::StringArray& files, int x, int y) override;
+
     std::function<void()> onClipDataChanged;
     std::function<void()> onPlayheadMoved;
+    std::function<void(const juce::File&, int trackIndex, double startBeat)> onAudioFileDropped;
+
+    void refreshFromModel();
 
 private:
     int getTrackHeight() const noexcept { return 60; }
     int getTimelineTop() const noexcept { return grid.getRulerHeight(); }
     int getTimelineStartX() const noexcept { return 130; }
+    int getTrackIndexForY(int y) const noexcept;
+    double getBeatForX(int x) const noexcept;
 
-    void createDemoClips();
     void layoutClips();
     void handleClipDragged(ClipComponent*, int newX);
     void handleClipResized(ClipComponent*, int newRightX);

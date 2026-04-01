@@ -11,6 +11,9 @@ public:
     void resized() override;
     void syncFromTransportState();
 
+    std::function<void()> onSaveClicked;
+    std::function<void()> onLoadClicked;
+
 private:
     void updateButtonColours();
 
@@ -19,6 +22,8 @@ private:
     juce::TextButton playButton { "Play" };
     juce::TextButton stopButton { "Stop" };
     juce::TextButton recordButton { "Record" };
+    juce::TextButton saveButton { "Save" };
+    juce::TextButton loadButton { "Load" };
 
     juce::Label tempoLabel;
     juce::Slider tempoSlider;

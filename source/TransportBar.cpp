@@ -24,6 +24,20 @@ TransportBar::TransportBar (TransportState& state)
     };
     addAndMakeVisible (recordButton);
 
+    saveButton.onClick = [this]
+    {
+        if (onSaveClicked)
+            onSaveClicked();
+    };
+    addAndMakeVisible (saveButton);
+
+    loadButton.onClick = [this]
+    {
+        if (onLoadClicked)
+            onLoadClicked();
+    };
+    addAndMakeVisible (loadButton);
+
     tempoLabel.setText ("Tempo", juce::dontSendNotification);
     tempoLabel.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (tempoLabel);
@@ -61,7 +75,7 @@ void TransportBar::resized()
 {
     auto area = getLocalBounds().reduced (10);
 
-    auto buttonArea = area.removeFromLeft (260);
+    auto buttonArea = area.removeFromLeft (430);
 
     playButton.setBounds (buttonArea.removeFromLeft (70));
     buttonArea.removeFromLeft (6);
@@ -70,6 +84,12 @@ void TransportBar::resized()
     buttonArea.removeFromLeft (6);
 
     recordButton.setBounds (buttonArea.removeFromLeft (90));
+    buttonArea.removeFromLeft (12);
+
+    saveButton.setBounds (buttonArea.removeFromLeft (70));
+    buttonArea.removeFromLeft (6);
+
+    loadButton.setBounds (buttonArea.removeFromLeft (70));
 
     area.removeFromLeft (20);
 

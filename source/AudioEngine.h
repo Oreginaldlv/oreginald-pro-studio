@@ -1,5 +1,4 @@
 #pragma once
-// test comment
 #include <atomic>
 #include <vector>
 #include <memory>

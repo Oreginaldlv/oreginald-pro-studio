@@ -10,6 +10,7 @@
 #include "ArrangementView.h"
 #include "StatusBar.h"
 #include "AudioEngine.h"
+#include "ProjectFileService.h"
 
 class MainComponent : public juce::Component,
                       private juce::Timer
@@ -19,14 +20,23 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    bool keyPressed (const juce::KeyPress& key) override;
 
 private:
     void timerCallback() override;
+    void addAudioClipToSelectedTrack (const juce::File& file);
+    void addAudioClipAtPosition (const juce::File& file, int trackIndex, double startBeat);
+    double getAudioLengthBeats (const juce::File& file) const;
+    void refreshProjectState();
+    void saveProject();
+    void loadProject();
 
     // core state
     TransportState transportState;
     TrackEngine trackEngine;
     AudioEngine audioEngine;
+    ProjectFileService projectFileService;
+    juce::File currentProjectFile;
 
     // UI
     TransportBar transportBar;

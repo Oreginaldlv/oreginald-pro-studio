@@ -8,6 +8,7 @@ namespace
 ArrangementView::ArrangementView(TrackEngine& engine, TransportState& state)
     : trackEngine(engine), transportState(state)
 {
+    setWantsKeyboardFocus(true);
     ensureClipComponents();
 }
 
@@ -102,6 +103,7 @@ void ArrangementView::resized()
 
 void ArrangementView::mouseDown(const juce::MouseEvent& e)
 {
+    grabKeyboardFocus();
     const int timelineStartX = getTimelineStartX();
 
     if (e.y < getTimelineTop() && e.x >= timelineStartX)
@@ -130,6 +132,79 @@ void ArrangementView::mouseDown(const juce::MouseEvent& e)
     }
 }
 
+bool ArrangementView::keyPressed(const juce::KeyPress& key)
+{
+    if (selectedClipIndex < 0)
+        return false;
+
+    if (key == juce::KeyPress::deleteKey || key == juce::KeyPress::backspaceKey)
+    {
+        if (trackEngine.removeClip(selectedClipIndex))
+        {
+            selectedClipIndex = -1;
+            refreshFromModel();
+
+            if (onClipDataChanged)
+                onClipDataChanged();
+
+            return true;
+        }
+    }
+
+    if (key.getModifiers().isCommandDown() && key.getTextCharacter() == 'd')
+    {
+        if (trackEngine.duplicateClip(selectedClipIndex))
+        {
+            ++selectedClipIndex;
+            refreshFromModel();
+
+            if (onClipDataChanged)
+                onClipDataChanged();
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ArrangementView::isInterestedInFileDrag(const juce::StringArray& files)
+{
+    for (const auto& file : files)
+        if (file.endsWithIgnoreCase(".wav"))
+            return true;
+
+    return false;
+}
+
+void ArrangementView::filesDropped(const juce::StringArray& files, int x, int y)
+{
+    if (onAudioFileDropped == nullptr)
+        return;
+
+    const int trackIndex = getTrackIndexForY(y);
+
+    if (! juce::isPositiveAndBelow(trackIndex, trackEngine.getNumTracks()))
+        return;
+
+    const double startBeat = getBeatForX(x);
+
+    for (const auto& path : files)
+    {
+        const juce::File file(path);
+
+        if (file.existsAsFile() && file.hasFileExtension("wav"))
+            onAudioFileDropped(file, trackIndex, startBeat);
+    }
+}
+
+void ArrangementView::refreshFromModel()
+{
+    ensureClipComponents();
+    layoutClips();
+    repaint();
+}
+
 void ArrangementView::ensureClipComponents()
 {
     const int clipCount = trackEngine.getClipCount();
@@ -137,7 +212,6 @@ void ArrangementView::ensureClipComponents()
     if (clipComponents.size() != clipCount)
     {
         clipComponents.clear();
-        selectedClipIndex = -1;
 
         for (int i = 0; i < clipCount; ++i)
         {
@@ -160,6 +234,9 @@ void ArrangementView::ensureClipComponents()
 
             addAndMakeVisible(comp);
         }
+
+        if (selectedClipIndex >= clipCount)
+            selectedClipIndex = -1;
     }
 
     refreshClipComponents();
@@ -262,4 +339,16 @@ void ArrangementView::setPlayheadFromX(int x)
 
     if (onPlayheadMoved)
         onPlayheadMoved();
+}
+
+int ArrangementView::getTrackIndexForY(int y) const noexcept
+{
+    return (y - getTimelineTop()) / getTrackHeight();
+}
+
+double ArrangementView::getBeatForX(int x) const noexcept
+{
+    const int timelineStartX = getTimelineStartX();
+    const int snappedX = grid.snapX(juce::jmax(timelineStartX, x));
+    return (snappedX - timelineStartX) / (double) grid.getPixelsPerBeat();
 }
