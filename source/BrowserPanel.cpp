@@ -91,7 +91,7 @@ void BrowserPanel::importAudioFiles()
 {
     fileChooser = std::make_unique<juce::FileChooser>("Import WAV file",
                                                       juce::File::getCurrentWorkingDirectory(),
-                                                      "*.wav");
+                                                      "*.wav;*.mp3"
 
     fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                              [this](const juce::FileChooser& chooser)

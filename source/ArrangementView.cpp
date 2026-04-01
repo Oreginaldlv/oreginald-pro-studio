@@ -195,7 +195,7 @@ bool ArrangementView::keyPressed(const juce::KeyPress& key)
 bool ArrangementView::isInterestedInFileDrag(const juce::StringArray& files)
 {
     for (const auto& file : files)
-        if (file.endsWithIgnoreCase(".wav"))
+        if (file.endsWithIgnoreCase(".wav") || file.endsWithIgnoreCase(".mp3"))
             return true;
 
     return false;
@@ -217,7 +217,7 @@ void ArrangementView::filesDropped(const juce::StringArray& files, int x, int y)
     {
         const juce::File file(path);
 
-        if (file.existsAsFile() && file.hasFileExtension("wav"))
+        if (file.existsAsFile() && (file.hasFileExtension("wav") || file.hasFileExtension("mp3")))
             onAudioFileDropped(file, trackIndex, startBeat);
     }
 }
