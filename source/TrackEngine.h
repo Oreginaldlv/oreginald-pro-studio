@@ -14,6 +14,14 @@ public:
         float pan { 0.0f };
     };
 
+    struct Clip
+    {
+        int trackIndex { 0 };
+        double startBeat { 0.0 };
+        double lengthBeats { 1.0 };
+        juce::String name;
+    };
+
     TrackEngine()
     {
         tracks.add ({ "Drums", false, false, false, 0.8f, 0.0f });
@@ -21,6 +29,12 @@ public:
         tracks.add ({ "Keys",  false, false, false, 0.8f, 0.0f });
         tracks.add ({ "Lead",  false, false, false, 0.8f, 0.0f });
         tracks.add ({ "Vox",   false, false, false, 0.8f, 0.0f });
+
+        clips.add({ 0, 0.5, 2.0, "Drum Loop A" });
+        clips.add({ 1, 1.5, 2.0, "Bass Verse" });
+        clips.add({ 2, 2.0, 1.5, "Keys Pad" });
+        clips.add({ 3, 2.5, 1.2, "Lead Hook" });
+        clips.add({ 4, 3.0, 1.6, "Vox Main" });
     }
 
     int getNumTracks() const noexcept
@@ -138,7 +152,47 @@ public:
         return track.volume * (p >= 0.0f ? 1.0f : 1.0f + p);
     }
 
+    int getClipCount() const noexcept
+    {
+        return clips.size();
+    }
+
+    const Clip& getClip (int index) const
+    {
+        jassert (juce::isPositiveAndBelow (index, clips.size()));
+        return clips.getReference (index);
+    }
+
+    Clip& getClip (int index)
+    {
+        jassert (juce::isPositiveAndBelow (index, clips.size()));
+        return clips.getReference (index);
+    }
+
+    const juce::Array<Clip>& getClips() const noexcept
+    {
+        return clips;
+    }
+
+    void setClipStart (int index, double startBeat)
+    {
+        if (! juce::isPositiveAndBelow (index, clips.size()))
+            return;
+
+        clips.getReference(index).startBeat = juce::jmax (0.0, startBeat);
+    }
+
+    void setClipLength (int index, double lengthBeats)
+    {
+        if (! juce::isPositiveAndBelow (index, clips.size()))
+            return;
+
+        clips.getReference(index).lengthBeats = juce::jmax (minClipLength, lengthBeats);
+    }
+
 private:
     juce::Array<Track> tracks;
     int selectedTrackIndex { 0 };
+    juce::Array<Clip> clips;
+    static constexpr double minClipLength { 1.0 };
 };

@@ -19,6 +19,9 @@ target_sources(OreginaldProStudio
 
         ClipComponent.cpp
         TimelineGrid.cpp
+        AudioEngine.cpp
+        AudioClipSource.cpp
+        TrackAudioChannel.cpp
 )
 
 target_include_directories(OreginaldProStudio

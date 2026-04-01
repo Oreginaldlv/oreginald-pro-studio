@@ -1,9 +1,14 @@
 #include "ArrangementView.h"
 
+namespace
+{
+    static constexpr double minClipBeats = 1.0;
+}
+
 ArrangementView::ArrangementView(TrackEngine& engine, TransportState& state)
     : trackEngine(engine), transportState(state)
 {
-    createDemoClips();
+    ensureClipComponents();
 }
 
 void ArrangementView::paint(juce::Graphics& g)
@@ -125,55 +130,71 @@ void ArrangementView::mouseDown(const juce::MouseEvent& e)
     }
 }
 
-void ArrangementView::createDemoClips()
+void ArrangementView::ensureClipComponents()
 {
-    clipData.clear();
-    clipComponents.clear();
+    const int clipCount = trackEngine.getClipCount();
 
-    clipData.add({ 0, 180, 120, "Drum Loop A" });
-    clipData.add({ 1, 240, 140, "Bass Verse" });
-    clipData.add({ 2, 300, 150, "Keys Pad" });
-    clipData.add({ 3, 360, 130, "Lead Hook" });
-    clipData.add({ 4, 420, 160, "Vox Main" });
-
-    for (int i = 0; i < clipData.size(); ++i)
+    if (clipComponents.size() != clipCount)
     {
-        auto* comp = clipComponents.add(new ClipComponent(clipData[i].name));
+        clipComponents.clear();
+        selectedClipIndex = -1;
 
-        comp->onSelected = [this](ClipComponent* c)
+        for (int i = 0; i < clipCount; ++i)
         {
-            handleClipSelected(c);
-        };
+            auto* comp = clipComponents.add(new ClipComponent(trackEngine.getClip(i).name));
 
-        comp->onDragged = [this](ClipComponent* c, int newX)
-        {
-            handleClipDragged(c, newX);
-        };
+            comp->onSelected = [this](ClipComponent* c)
+            {
+                handleClipSelected(c);
+            };
 
-        comp->onResized = [this](ClipComponent* c, int newRightX)
-        {
-            handleClipResized(c, newRightX);
-        };
+            comp->onDragged = [this](ClipComponent* c, int newX)
+            {
+                handleClipDragged(c, newX);
+            };
 
-        addAndMakeVisible(comp);
+            comp->onResized = [this](ClipComponent* c, int newRightX)
+            {
+                handleClipResized(c, newRightX);
+            };
+
+            addAndMakeVisible(comp);
+        }
     }
 
-    layoutClips();
+    refreshClipComponents();
+}
+
+void ArrangementView::refreshClipComponents()
+{
+    const int clipCount = trackEngine.getClipCount();
+
+    for (int i = 0; i < clipComponents.size() && i < clipCount; ++i)
+    {
+        clipComponents[i]->setClipName(trackEngine.getClip(i).name);
+        clipComponents[i]->setSelected(i == selectedClipIndex);
+    }
 }
 
 void ArrangementView::layoutClips()
 {
+    ensureClipComponents();
+
     const int trackHeight = getTrackHeight();
     const int clipYInset = 20;
     const int clipHeight = 28;
     const int rulerHeight = grid.getRulerHeight();
+    const int timelineStartX = getTimelineStartX();
+    const int pixelsPerBeat = grid.getPixelsPerBeat();
 
     for (int i = 0; i < clipComponents.size(); ++i)
     {
-        const auto& clip = clipData.getReference(i);
+        const auto& clip = trackEngine.getClip(i);
+        const int clipX = timelineStartX + (int) std::round(clip.startBeat * pixelsPerBeat);
+        const int clipWidth = juce::jmax(pixelsPerBeat, (int) std::round(clip.lengthBeats * pixelsPerBeat));
         const int clipY = rulerHeight + clip.trackIndex * trackHeight + clipYInset;
 
-        clipComponents[i]->setBounds(clip.x, clipY, clip.width, clipHeight);
+        clipComponents[i]->setBounds(clipX, clipY, clipWidth, clipHeight);
         clipComponents[i]->setSelected(i == selectedClipIndex);
     }
 }
@@ -182,43 +203,52 @@ void ArrangementView::handleClipDragged(ClipComponent* clip, int newX)
 {
     const int index = clipComponents.indexOf(clip);
 
-    if (!juce::isPositiveAndBelow(index, clipData.size()))
+    if (!juce::isPositiveAndBelow(index, trackEngine.getClipCount()))
         return;
 
-    auto& data = clipData.getReference(index);
-    data.x = grid.snapX(juce::jmax(getTimelineStartX(), newX));
+    const double beat = juce::jmax(0.0,
+                                    (double) (newX - getTimelineStartX())
+                                        / (double) grid.getPixelsPerBeat());
+
+    trackEngine.setClipStart(index, beat);
 
     layoutClips();
-    repaint();
+    refreshClipComponents();
+
+    if (onClipDataChanged)
+        onClipDataChanged();
 }
 
 void ArrangementView::handleClipResized(ClipComponent* clip, int newRightX)
 {
     const int index = clipComponents.indexOf(clip);
 
-    if (!juce::isPositiveAndBelow(index, clipData.size()))
+    if (!juce::isPositiveAndBelow(index, trackEngine.getClipCount()))
         return;
 
-    auto& data = clipData.getReference(index);
+    const auto& clipData = trackEngine.getClip(index);
+    const double targetLengthBeats = (double) (newRightX - getTimelineStartX()) / (double) grid.getPixelsPerBeat()
+                                     - clipData.startBeat;
 
-    const int minWidth = grid.getPixelsPerBeat();
-    const int snappedRight = grid.snapX(juce::jmax(data.x + minWidth, newRightX));
-
-    data.width = juce::jmax(minWidth, snappedRight - data.x);
+    trackEngine.setClipLength(index, juce::jmax(minClipBeats, targetLengthBeats));
 
     layoutClips();
-    repaint();
+    refreshClipComponents();
+
+    if (onClipDataChanged)
+        onClipDataChanged();
 }
 
 void ArrangementView::handleClipSelected(ClipComponent* clip)
 {
     selectedClipIndex = clipComponents.indexOf(clip);
 
-    if (!juce::isPositiveAndBelow(selectedClipIndex, clipData.size()))
+    if (!juce::isPositiveAndBelow(selectedClipIndex, trackEngine.getClipCount()))
         return;
 
-    trackEngine.setSelectedTrackIndex(clipData[selectedClipIndex].trackIndex);
+    trackEngine.setSelectedTrackIndex(trackEngine.getClip(selectedClipIndex).trackIndex);
     layoutClips();
+    refreshClipComponents();
     repaint();
 }
 
@@ -226,7 +256,10 @@ void ArrangementView::setPlayheadFromX(int x)
 {
     const int timelineStartX = getTimelineStartX();
     const int snappedX = grid.snapX(juce::jmax(timelineStartX, x));
-    const double beats = (double) (snappedX - timelineStartX) / (double) grid.getPixelsPerBeat();
+    const double beats = (snappedX - timelineStartX) / (double) grid.getPixelsPerBeat();
 
     transportState.setPlayheadBeats(beats);
+
+    if (onPlayheadMoved)
+        onPlayheadMoved();
 }

@@ -9,6 +9,7 @@
 #include "InspectorPanel.h"
 #include "ArrangementView.h"
 #include "StatusBar.h"
+#include "AudioEngine.h"
 
 class MainComponent : public juce::Component,
                       private juce::Timer
@@ -25,6 +26,7 @@ private:
     // core state
     TransportState transportState;
     TrackEngine trackEngine;
+    AudioEngine audioEngine;
 
     // UI
     TransportBar transportBar;

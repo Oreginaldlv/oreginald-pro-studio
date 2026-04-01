@@ -54,6 +54,12 @@ public:
             lastStartTimeMs = juce::Time::getMillisecondCounterHiRes();
     }
 
+    void setPlayheadBeatsDirect(double newBeats)
+    {
+        playheadBeats = juce::jmax(0.0, newBeats);
+        playheadAnchorBeats = playheadBeats;
+    }
+
     int getCurrentBar() const noexcept
     {
         return (int)(playheadBeats / beatsPerBar) + 1;

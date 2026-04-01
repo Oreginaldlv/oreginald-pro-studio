@@ -3,8 +3,21 @@
 MainComponent::MainComponent()
     : transportBar(transportState),
       inspectorPanel(trackEngine),
+      audioEngine(transportState, trackEngine),
       arrangementView(trackEngine, transportState)
 {
+    arrangementView.onClipDataChanged = [this]
+    {
+        audioEngine.refreshClipSources();
+    };
+
+    arrangementView.onPlayheadMoved = [this]
+    {
+        audioEngine.jumpToBeat(transportState.getPlayheadBeats());
+    };
+
+    audioEngine.refreshClipSources();
+
     addAndMakeVisible(transportBar);
     addAndMakeVisible(browserPanel);
     addAndMakeVisible(inspectorPanel);
@@ -40,7 +53,7 @@ void MainComponent::resized()
 
 void MainComponent::timerCallback()
 {
-    transportState.updatePlayhead();
+    transportState.setPlayheadBeatsDirect(audioEngine.getPlayheadBeats());
     inspectorPanel.syncFromTrackEngine();
     transportBar.syncFromTransportState();
 
@@ -53,7 +66,7 @@ void MainComponent::timerCallback()
     juce::String status;
 
     status << "Position: "
-           << transportState.getBarBeatString()
+           << audioEngine.getBarBeatString()
 
            << " | Track: "
            << track.name

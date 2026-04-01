@@ -13,16 +13,10 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
     void mouseDown(const juce::MouseEvent& e) override;
+    std::function<void()> onClipDataChanged;
+    std::function<void()> onPlayheadMoved;
 
 private:
-    struct ClipData
-    {
-        int trackIndex { 0 };
-        int x { 0 };
-        int width { 120 };
-        juce::String name;
-    };
-
     int getTrackHeight() const noexcept { return 60; }
     int getTimelineTop() const noexcept { return grid.getRulerHeight(); }
     int getTimelineStartX() const noexcept { return 130; }
@@ -33,13 +27,14 @@ private:
     void handleClipResized(ClipComponent*, int newRightX);
     void handleClipSelected(ClipComponent*);
     void setPlayheadFromX(int x);
+    void ensureClipComponents();
+    void refreshClipComponents();
 
     TrackEngine& trackEngine;
     TransportState& transportState;
     TimelineGrid grid;
 
     juce::OwnedArray<ClipComponent> clipComponents;
-    juce::Array<ClipData> clipData;
 
     int selectedClipIndex { -1 };
 
