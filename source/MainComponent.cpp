@@ -3,7 +3,7 @@
 MainComponent::MainComponent()
     : transportBar(transportState),
       inspectorPanel(trackEngine),
-      arrangementView(trackEngine)
+      arrangementView(trackEngine, transportState)
 {
     addAndMakeVisible(transportBar);
     addAndMakeVisible(browserPanel);
@@ -40,6 +40,10 @@ void MainComponent::resized()
 
 void MainComponent::timerCallback()
 {
+    transportState.updatePlayhead();
+    inspectorPanel.syncFromTrackEngine();
+    transportBar.syncFromTransportState();
+
     arrangementView.repaint();
     inspectorPanel.repaint();
 
@@ -48,15 +52,26 @@ void MainComponent::timerCallback()
 
     juce::String status;
 
-    status << "Track: " << track.name
-           << " | Vol: " << juce::String(track.volume, 2)
-           << " | Pan: " << juce::String(track.pan, 2)
-           << " | Armed: " << (track.armed ? "Yes" : "No")
-           << " | Muted: " << (track.muted ? "Yes" : "No")
-           << " | Solo: " << (track.solo ? "Yes" : "No")
-           << " | Tempo: " << juce::String(transportState.getTempo(), 1)
-           << " | Playing: " << (transportState.isPlaying() ? "Yes" : "No")
-           << " | Recording: " << (transportState.isRecording() ? "Yes" : "No");
+    status << "Position: "
+           << transportState.getBarBeatString()
+
+           << " | Track: "
+           << track.name
+
+           << " | Vol: "
+           << juce::String(track.volume, 2)
+
+           << " | Pan: "
+           << juce::String(track.pan, 2)
+
+           << " | Tempo: "
+           << juce::String(transportState.getTempo(), 1)
+
+           << " | Playing: "
+           << (transportState.isPlaying() ? "Yes" : "No")
+
+           << " | Recording: "
+           << (transportState.isRecording() ? "Yes" : "No");
 
     statusBar.setStatusText(status);
 }

@@ -8,7 +8,7 @@ target_sources(OreginaldProStudio
     PRIVATE
         Main.cpp
         MainComponent.cpp
-
+        
         TransportBar.cpp
         BrowserPanel.cpp
         InspectorPanel.cpp
@@ -18,6 +18,7 @@ target_sources(OreginaldProStudio
         TrackEngine.cpp
 
         ClipComponent.cpp
+        TimelineGrid.cpp
 )
 
 target_include_directories(OreginaldProStudio

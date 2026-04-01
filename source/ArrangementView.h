@@ -3,18 +3,18 @@
 #include "TrackEngine.h"
 #include "ClipComponent.h"
 #include "TimelineGrid.h"
+#include "TransportState.h"
 
 class ArrangementView : public juce::Component
 {
 public:
-    explicit ArrangementView(TrackEngine& engine);
+    ArrangementView(TrackEngine& engine, TransportState& state);
 
     void paint(juce::Graphics& g) override;
     void resized() override;
     void mouseDown(const juce::MouseEvent& e) override;
 
 private:
-
     struct ClipData
     {
         int trackIndex { 0 };
@@ -24,16 +24,20 @@ private:
     };
 
     int getTrackHeight() const noexcept { return 60; }
+    int getTimelineTop() const noexcept { return grid.getRulerHeight(); }
+    int getTimelineStartX() const noexcept { return 130; }
 
     void createDemoClips();
     void layoutClips();
-
-    void handleClipDragged(ClipComponent*, juce::Point<int>);
+    void handleClipDragged(ClipComponent*, int newX);
+    void handleClipResized(ClipComponent*, int newRightX);
     void handleClipSelected(ClipComponent*);
+    void setPlayheadFromX(int x);
 
     TrackEngine& trackEngine;
+    TransportState& transportState;
     TimelineGrid grid;
-    
+
     juce::OwnedArray<ClipComponent> clipComponents;
     juce::Array<ClipData> clipData;
 

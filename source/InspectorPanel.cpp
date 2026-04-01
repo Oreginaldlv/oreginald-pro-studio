@@ -9,7 +9,7 @@ InspectorPanel::InspectorPanel (TrackEngine& engine)
     trackSelector.onChange = [this]
     {
         trackEngine.setSelectedTrackIndex(trackSelector.getSelectedItemIndex());
-        refreshFromSelectedTrack();
+        syncFromTrackEngine();
     };
 
     addAndMakeVisible(trackSelector);
@@ -62,12 +62,16 @@ InspectorPanel::InspectorPanel (TrackEngine& engine)
 
     addAndMakeVisible(soloToggle);
 
-    refreshFromSelectedTrack();
+    populateTrackSelector();
+    syncFromTrackEngine();
 }
 
 void InspectorPanel::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colour(0xff1a1a1a));
+
+    g.setColour(juce::Colour(0xff2a2a2a));
+    g.drawRect(getLocalBounds(), 1);
 }
 
 void InspectorPanel::resized()
@@ -90,20 +94,15 @@ void InspectorPanel::resized()
     soloToggle.setBounds(area.removeFromTop(22));
 }
 
-void InspectorPanel::refreshFromSelectedTrack()
+void InspectorPanel::syncFromTrackEngine()
 {
-    trackSelector.clear();
+    if (trackSelector.getNumItems() != trackEngine.getNumTracks())
+        populateTrackSelector();
 
-    int count = trackEngine.getNumTracks();
-
-    for (int i = 0; i < count; ++i)
-        trackSelector.addItem(trackEngine.getTrack(i).name, i + 1);
-
-    int selected = trackEngine.getSelectedTrackIndex();
-
+    const int selected = trackEngine.getSelectedTrackIndex();
     trackSelector.setSelectedItemIndex(selected, juce::dontSendNotification);
 
-    auto& track = trackEngine.getTrack(selected);
+    const auto& track = trackEngine.getTrack(selected);
 
     volumeSlider.setValue(track.volume, juce::dontSendNotification);
     panSlider.setValue(track.pan, juce::dontSendNotification);
@@ -111,4 +110,12 @@ void InspectorPanel::refreshFromSelectedTrack()
     armToggle.setToggleState(track.armed, juce::dontSendNotification);
     muteToggle.setToggleState(track.muted, juce::dontSendNotification);
     soloToggle.setToggleState(track.solo, juce::dontSendNotification);
+}
+
+void InspectorPanel::populateTrackSelector()
+{
+    trackSelector.clear();
+
+    for (int i = 0; i < trackEngine.getNumTracks(); ++i)
+        trackSelector.addItem(trackEngine.getTrack(i).name, i + 1);
 }

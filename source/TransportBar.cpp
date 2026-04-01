@@ -6,18 +6,21 @@ TransportBar::TransportBar (TransportState& state)
     playButton.onClick = [this]
     {
         transportState.setPlaying (true);
+        syncFromTransportState();
     };
     addAndMakeVisible (playButton);
 
     stopButton.onClick = [this]
     {
         transportState.setPlaying (false);
+        syncFromTransportState();
     };
     addAndMakeVisible (stopButton);
 
     recordButton.onClick = [this]
     {
         transportState.setRecording (! transportState.isRecording());
+        syncFromTransportState();
     };
     addAndMakeVisible (recordButton);
 
@@ -38,6 +41,8 @@ TransportBar::TransportBar (TransportState& state)
                           juce::dontSendNotification);
 
     addAndMakeVisible (tempoSlider);
+
+    syncFromTransportState();
 }
 
 void TransportBar::paint (juce::Graphics& g)
@@ -70,4 +75,26 @@ void TransportBar::resized()
 
     tempoLabel.setBounds (area.removeFromLeft (60));
     tempoSlider.setBounds (area.removeFromLeft (220));
+}
+
+void TransportBar::syncFromTransportState()
+{
+    tempoSlider.setValue(transportState.getTempo(), juce::dontSendNotification);
+    updateButtonColours();
+    repaint();
+}
+
+void TransportBar::updateButtonColours()
+{
+    playButton.setColour(juce::TextButton::buttonColourId,
+                         transportState.isPlaying() ? juce::Colour(0xff2f7d4c)
+                                                    : juce::Colour(0xff404040));
+
+    stopButton.setColour(juce::TextButton::buttonColourId,
+                         transportState.isPlaying() ? juce::Colour(0xff404040)
+                                                    : juce::Colour(0xff5a5a5a));
+
+    recordButton.setColour(juce::TextButton::buttonColourId,
+                           transportState.isRecording() ? juce::Colour(0xff9d3131)
+                                                        : juce::Colour(0xff404040));
 }

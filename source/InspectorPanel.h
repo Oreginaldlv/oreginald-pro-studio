@@ -9,9 +9,10 @@ public:
 
     void paint (juce::Graphics& g) override;
     void resized() override;
+    void syncFromTrackEngine();
 
 private:
-    void refreshFromSelectedTrack();
+    void populateTrackSelector();
 
     TrackEngine& trackEngine;
 

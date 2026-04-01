@@ -9,8 +9,11 @@ public:
 
     void paint (juce::Graphics& g) override;
     void resized() override;
+    void syncFromTransportState();
 
 private:
+    void updateButtonColours();
+
     TransportState& transportState;
 
     juce::TextButton playButton { "Play" };
