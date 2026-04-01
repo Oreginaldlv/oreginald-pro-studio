@@ -20,9 +20,12 @@ public:
 
     std::function<void()> onClipDataChanged;
     std::function<void()> onPlayheadMoved;
+    std::function<void()> onSaveRequested;
+    std::function<void()> onLoadRequested;
     std::function<void(const juce::File&, int trackIndex, double startBeat)> onAudioFileDropped;
 
     void refreshFromModel();
+    void resetSelection();
 
 private:
     int getTrackHeight() const noexcept { return 60; }

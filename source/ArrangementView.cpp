@@ -153,9 +153,14 @@ bool ArrangementView::keyPressed(const juce::KeyPress& key)
 
     if (key.getModifiers().isCommandDown() && key.getTextCharacter() == 'd')
     {
-        if (trackEngine.duplicateClip(selectedClipIndex))
+        const int duplicatedIndex = trackEngine.duplicateClip(selectedClipIndex);
+
+        if (duplicatedIndex >= 0)
         {
-            ++selectedClipIndex;
+            selectedClipIndex = duplicatedIndex;
+            const auto& duplicatedClip = trackEngine.getClip(selectedClipIndex);
+            trackEngine.setSelectedTrackIndex(duplicatedClip.trackIndex);
+
             refreshFromModel();
 
             if (onClipDataChanged)
@@ -163,6 +168,25 @@ bool ArrangementView::keyPressed(const juce::KeyPress& key)
 
             return true;
         }
+    }
+
+    const auto textChar = key.getTextCharacter();
+    const auto isCommand = key.getModifiers().isCommandDown();
+
+    if (isCommand && (textChar == 's' || textChar == 'S'))
+    {
+        if (onSaveRequested)
+            onSaveRequested();
+
+        return true;
+    }
+
+    if (isCommand && (textChar == 'o' || textChar == 'O'))
+    {
+        if (onLoadRequested)
+            onLoadRequested();
+
+        return true;
     }
 
     return false;
@@ -203,6 +227,14 @@ void ArrangementView::refreshFromModel()
     ensureClipComponents();
     layoutClips();
     repaint();
+}
+
+void ArrangementView::resetSelection()
+{
+    selectedClipIndex = -1;
+
+    for (int i = 0; i < clipComponents.size(); ++i)
+        clipComponents[i]->setSelected(false);
 }
 
 void ArrangementView::ensureClipComponents()

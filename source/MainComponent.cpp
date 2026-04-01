@@ -39,6 +39,16 @@ MainComponent::MainComponent()
         loadProject();
     };
 
+    arrangementView.onSaveRequested = [this]()
+    {
+        saveProject();
+    };
+
+    arrangementView.onLoadRequested = [this]()
+    {
+        loadProject();
+    };
+
     addAndMakeVisible(transportBar);
     addAndMakeVisible(browserPanel);
     addAndMakeVisible(inspectorPanel);
@@ -188,5 +198,6 @@ void MainComponent::loadProject()
         return;
 
     audioEngine.jumpToBeat(transportState.getPlayheadBeats());
+    arrangementView.resetSelection();
     refreshProjectState();
 }

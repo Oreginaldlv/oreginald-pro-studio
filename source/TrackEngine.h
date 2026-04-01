@@ -200,16 +200,16 @@ public:
         return clips.size() - 1;
     }
 
-    bool duplicateClip (int index)
+    int duplicateClip (int index)
     {
         if (! juce::isPositiveAndBelow (index, clips.size()))
-            return false;
+            return -1;
 
         auto copy = clips.getReference (index);
         copy.startBeat += copy.lengthBeats;
         copy.name = copy.name + " Copy";
         clips.insert (index + 1, copy);
-        return true;
+        return index + 1;
     }
 
     bool removeClip (int index)
